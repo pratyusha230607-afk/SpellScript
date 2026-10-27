@@ -5,18 +5,23 @@
 @layer base {
   body {
     @apply bg-night-950 text-moonCream font-body overflow-x-hidden min-h-screen selection:bg-magic selection:text-white;
-    background-image: 
+    background-image:
       radial-gradient(ellipse at 20% 15%, rgba(146, 116, 216, 0.15) 0%, transparent 45%),
       radial-gradient(ellipse at 80% 85%, rgba(243, 169, 212, 0.12) 0%, transparent 45%),
       radial-gradient(ellipse at 50% 50%, rgba(184, 232, 220, 0.05) 0%, transparent 60%);
     background-attachment: fixed;
   }
 
-  h1, h2, h3, .font-fantasy {
+  h1,
+  h2,
+  h3,
+  .font-fantasy {
     font-family: 'Cinzel', serif;
   }
 
-  code, pre, .font-code {
+  code,
+  pre,
+  .font-code {
     font-family: 'JetBrains Mono', monospace;
   }
 }
@@ -63,11 +68,17 @@
 }
 
 @keyframes floatOrb {
-  0%, 100% { transform: translateY(0) scale(1); }
-  50% { transform: translateY(-10px) scale(1.04); }
+
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+  }
+
+  50% {
+    transform: translateY(-10px) scale(1.04);
+  }
 }
 
 .floating-orb {
   animation: floatOrb 4s ease-in-out infinite;
 }
-
