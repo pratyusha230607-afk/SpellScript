@@ -24,6 +24,9 @@ import {
   ArrowDown,
   ArrowLeft,
   AlertTriangle,
+  BookOpen,
+  HelpCircle,
+  X,
 } from 'lucide-react';
 
 interface ErrorPointer {
@@ -57,6 +60,7 @@ export const CodedexApp: React.FC = () => {
   // Hints and solutions toggles
   const [showHint, setShowHint] = useState<boolean>(false);
   const [showSolution, setShowSolution] = useState<boolean>(false);
+  const [isTutorialOpen, setIsTutorialOpen] = useState<boolean>(false);
 
   // Execution & Diagnostics states
   const [isExecuting, setIsExecuting] = useState<boolean>(false);
@@ -669,7 +673,7 @@ export const CodedexApp: React.FC = () => {
   return (
     <div className="min-h-screen bg-[#0e0a19] text-[#FFF2D8] flex flex-col font-body selection:bg-magic selection:text-white">
       {/* 1. TOP NAVBAR */}
-      <header className="w-full bg-[#151024] border-b border-purple-900/40 px-4 py-2.5 sticky top-0 z-40 shadow-md">
+      <header className="w-full bg-[#151024]/95 backdrop-blur-md border-b border-purple-900/40 px-4 py-2.5 sticky top-0 z-40 shadow-md">
         <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
           {/* Logo with click to return to home */}
           <div
@@ -677,9 +681,9 @@ export const CodedexApp: React.FC = () => {
               sound.playClick();
               setCurrentView('home');
             }}
-            className="flex items-center gap-2.5 select-none cursor-pointer group"
+            className="flex items-center gap-2.5 select-none cursor-pointer group shrink-0"
           >
-            <div className="w-8 h-8 rounded-lg bg-[#f59e0b] border border-[#b45309] shadow-[0_2px_0_#78350f] flex items-center justify-center text-sm font-pixel text-night-950 group-hover:scale-105 transition-transform">
+            <div className="w-8 h-8 rounded-lg bg-[#8B5CF6] border border-[#6D28D9] shadow-[0_2px_0_#4C1D95] flex items-center justify-center text-sm font-pixel text-white group-hover:scale-105 transition-transform">
               🪄
             </div>
             <div>
@@ -690,19 +694,8 @@ export const CodedexApp: React.FC = () => {
             </div>
           </div>
 
-          {/* Quest Selector Buttons (Chapter 1..5) */}
-          <div className="flex items-center gap-2 overflow-x-auto py-1">
-            <button
-              onClick={() => {
-                sound.playClick();
-                setCurrentView('home');
-              }}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-fantasy font-bold bg-white/5 hover:bg-white/10 text-moonCream/80 flex items-center gap-1 transition-all shrink-0"
-              title="Return to Homepage"
-            >
-              <span>🏠</span>
-              <span className="hidden sm:inline">Home</span>
-            </button>
+          {/* Quest Selector Buttons (Chapter 1..8) */}
+          <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
             {CODEDEX_LESSONS.map((l) => {
               const isCurrent = l.id === currentLessonId;
               const isDone = completedLessons.includes(l.id);
@@ -716,7 +709,7 @@ export const CodedexApp: React.FC = () => {
                   }}
                   className={`px-3 py-1.5 rounded-xl text-xs font-fantasy font-bold transition-all flex items-center gap-1.5 shrink-0 ${
                     isCurrent
-                      ? 'bg-gradient-to-r from-magic to-spellPink text-night-950 shadow-magic'
+                      ? 'bg-gradient-to-r from-magic to-spellPink text-night-950 shadow-magic scale-105'
                       : isDone
                       ? 'bg-emerald-950/70 border border-manaMint/40 text-manaMint'
                       : 'bg-white/5 hover:bg-white/10 text-moonCream/70'
@@ -730,341 +723,106 @@ export const CodedexApp: React.FC = () => {
             })}
           </div>
 
-          {/* Sound & Helpers */}
-          <div className="flex items-center gap-2">
+          {/* Action Buttons: Tutorial, Hint, Sound, Home */}
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              onClick={() => {
+                sound.playClick();
+                setIsTutorialOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-magic/20 hover:bg-magic/35 border border-magic/40 text-spellPink text-xs font-fantasy font-bold transition-all cursor-pointer shadow-sm"
+              title="Open Quest Tutorial & How to Play"
+            >
+              <BookOpen className="w-3.5 h-3.5" />
+              <span>Tutorial</span>
+            </button>
+
+            <button
+              onClick={() => {
+                sound.playClick();
+                setShowHint(!showHint);
+              }}
+              className={`p-2 rounded-xl text-xs font-fantasy font-bold transition-colors cursor-pointer ${
+                showHint
+                  ? 'bg-amber-400 text-night-950'
+                  : 'bg-white/5 hover:bg-white/10 text-runeAmber'
+              }`}
+              title="Need a Hint?"
+            >
+              <Lightbulb className="w-4 h-4" />
+            </button>
+
             <button
               onClick={() => {
                 const muted = sound.toggleMute();
                 setIsMuted(muted);
               }}
-              className="p-1.5 rounded-lg bg-white/5 hover:bg-white/10 text-moonCream/70"
+              className="p-2 rounded-xl bg-white/5 hover:bg-white/10 text-moonCream/70 transition-colors cursor-pointer"
               title={isMuted ? 'Unmute' : 'Mute'}
             >
               {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
+            </button>
+
+            <button
+              onClick={() => {
+                sound.playClick();
+                setCurrentView('home');
+              }}
+              className="px-2.5 py-1.5 rounded-xl text-xs font-fantasy font-bold bg-white/5 hover:bg-white/10 text-moonCream/80 flex items-center gap-1 transition-all cursor-pointer"
+              title="Return to Home"
+            >
+              <span>🏠</span>
+              <span className="hidden sm:inline">Home</span>
             </button>
           </div>
         </div>
       </header>
 
-      {/* 2. MAIN 2-PANEL CODEDEX LAYOUT */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT PANEL: LESSON EXPLANATION & SYSTEM INSTRUCTIONS (5 cols) */}
-        <section className="lg:col-span-5 space-y-5 bg-[#140e24] border border-purple-900/40 rounded-3xl p-5 md:p-6 shadow-xl">
-          {/* Header & Concept Badge */}
-          <div className="space-y-1 pb-3 border-b border-white/10">
-            <div className="flex items-center justify-between">
-              <span className="text-[10px] font-fantasy font-bold uppercase tracking-widest text-spellPink">
-                {lesson.chapter}
-              </span>
-              <span className="text-xs font-code text-manaMint font-semibold">
-                {completedLessons.includes(lesson.id) ? '✓ Completed' : 'In Progress'}
-              </span>
-            </div>
-            <h2 className="font-fantasy font-black text-2xl text-moonCream">
+      {/* 2. COMPACT OBJECTIVE HERO BAR (Clean & Focused) */}
+      <div className="w-full bg-[#130d22]/90 border-b border-purple-900/40 px-4 py-2.5">
+        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <span className="px-2.5 py-0.5 rounded-md bg-magic/25 border border-magic/40 text-manaMint text-xs font-pixel uppercase tracking-wider">
+              {lesson.chapter}
+            </span>
+            <h1 className="font-fantasy font-black text-lg sm:text-xl text-moonCream">
               {lesson.title}
-            </h2>
-            <div className="text-xs text-magic-light font-medium">
-              Topic: <strong className="text-moonCream">{lesson.conceptName}</strong>
-            </div>
-          </div>
-
-          {/* 1. What is this? */}
-          <div className="space-y-2">
-            <h3 className="font-fantasy font-bold text-sm text-moonCream flex items-center gap-1.5">
-              {lesson.whatIsThisTitle}
-            </h3>
-            <p className="text-xs text-moonCream/85 leading-relaxed">
-              {lesson.whatIsThisBody}
+            </h1>
+            <span className="text-white/30 hidden sm:inline">•</span>
+            <p className="text-xs text-moonCream/80 font-medium hidden md:inline">
+              <span className="text-amber-400 font-semibold">Objective:</span> {lesson.taskObjective}
             </p>
-            {lesson.whatIsThisCallout && (
-              <div className="p-2.5 rounded-xl bg-magic/15 border border-magic/30 text-[11px] text-magic-light leading-snug">
-                💡 <strong>Key Insight:</strong> {lesson.whatIsThisCallout}
-              </div>
-            )}
           </div>
 
-          {/* 2. How do I write it? */}
-          <div className="space-y-2">
-            <h3 className="font-fantasy font-bold text-sm text-moonCream flex items-center gap-1.5">
-              {lesson.howToWriteTitle}
-            </h3>
-            <p className="text-xs text-moonCream/85 leading-relaxed">
-              {lesson.howToWriteBody}
-            </p>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => {
+                sound.playClick();
+                setIsTutorialOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-magic/20 hover:bg-magic/35 border border-magic/40 text-xs text-spellPink font-fantasy font-bold transition-colors cursor-pointer shadow-sm"
+            >
+              <HelpCircle className="w-3.5 h-3.5" />
+              <span>How to play</span>
+            </button>
 
-            {/* Code Syntax Card */}
-            <pre className="p-3 rounded-2xl bg-[#090610] border border-purple-900/50 font-code text-xs text-manaMint overflow-x-auto leading-relaxed shadow-inner">
-              <code>{lesson.codeExample}</code>
-            </pre>
+            <button
+              onClick={() => {
+                sound.playClick();
+                setShowSolution(!showSolution);
+              }}
+              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-moonCream/70 font-fantasy transition-colors cursor-pointer"
+            >
+              {showSolution ? 'Hide Solution' : 'Solution'}
+            </button>
           </div>
+        </div>
+      </div>
 
-          {/* 3. System Instructions (What the user has to do) */}
-          <div className="space-y-3 pt-3 border-t border-white/10">
-            <div className="flex items-center justify-between">
-              <h3 className="font-fantasy font-bold text-sm text-moonCream flex items-center gap-1.5">
-                <span>🎯</span> Instructions (Your Quest)
-              </h3>
-              <span className="text-[10px] font-code text-spellPink font-bold">
-                Type in editor ➔
-              </span>
-            </div>
-
-            <p className="text-xs text-moonCream/80 font-medium">
-              {lesson.taskObjective}
-            </p>
-
-            {/* Task Checklist with Contextual Arrow */}
-            <div className="space-y-2">
-              {lesson.tasks.map((task, idx) => {
-                const typed = isTaskTyped(task.codeKeyword);
-                const isNextTask = idx === nextIncompleteTaskIndex;
-
-                return (
-                  <div
-                    key={task.id}
-                    className={`p-2.5 rounded-xl border text-xs flex items-start gap-2.5 transition-all relative ${
-                      typed
-                        ? 'bg-emerald-950/40 border-manaMint/40 text-moonCream'
-                        : isNextTask
-                        ? 'bg-magic/20 border-spellPink/70 text-moonCream shadow-magic'
-                        : 'bg-night-950/60 border-white/10 text-moonCream/70'
-                    }`}
-                  >
-                    <div
-                      className={`w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold ${
-                        typed ? 'bg-manaMint text-night-950' : isNextTask ? 'bg-spellPink text-night-950' : 'border border-white/30 text-white/40'
-                      }`}
-                    >
-                      {typed ? '✓' : idx + 1}
-                    </div>
-                    <div className="flex-1">
-                      <span className={typed ? 'text-manaMint font-semibold' : isNextTask ? 'text-moonCream font-bold' : ''}>
-                        {task.description}
-                      </span>
-                      <div className="text-[10px] text-magic-light font-code mt-0.5">
-                        Code: <code>{task.codeKeyword}</code>
-                      </div>
-                    </div>
-
-                    {/* Contextual Arrow: Points to next task ONLY when needed */}
-                    {isNextTask && !questSuccess && (
-                      <div className="flex items-center gap-1 text-[10px] font-fantasy font-bold text-spellPink animate-pulse shrink-0">
-                        <span>Write next</span>
-                        <ArrowRight className="w-3.5 h-3.5" />
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Hint & Solution Toggles */}
-          <div className="pt-2 border-t border-white/10 space-y-2">
-            <div className="flex items-center gap-3 text-xs">
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  setShowHint(!showHint);
-                }}
-                className="text-runeAmber hover:text-yellow-300 font-fantasy font-bold flex items-center gap-1 transition-colors"
-              >
-                <Lightbulb className="w-3.5 h-3.5" />
-                <span>{showHint ? 'Hide Hint' : 'Need a Hint?'}</span>
-              </button>
-
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  setShowSolution(!showSolution);
-                }}
-                className="text-spellPink hover:text-white font-fantasy font-bold flex items-center gap-1 transition-colors"
-              >
-                {showSolution ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                <span>{showSolution ? 'Hide Solution' : 'Show Solution'}</span>
-              </button>
-            </div>
-
-            {/* Hint Box */}
-            {showHint && (
-              <div className="p-3 rounded-xl bg-amber-950/50 border border-runeAmber/40 text-xs text-moonCream/90 animate-fadeIn">
-                💡 <strong>Hint:</strong> {lesson.hint}
-              </div>
-            )}
-
-            {/* Solution Box */}
-            {showSolution && (
-              <div className="p-3 rounded-xl bg-purple-950/70 border border-spellPink/50 text-xs space-y-1.5 animate-fadeIn">
-                <div className="font-fantasy font-bold text-spellPink flex items-center justify-between">
-                  <span>📜 Solution Code</span>
-                  <button
-                    onClick={() => {
-                      sound.playClick();
-                      setCode(lesson.solutionCode);
-                    }}
-                    className="text-[10px] px-2 py-0.5 rounded bg-spellPink text-night-950 font-bold hover:bg-white"
-                  >
-                    Insert to Editor
-                  </button>
-                </div>
-                <pre className="p-2 rounded bg-night-950 font-code text-xs text-manaMint overflow-x-auto">
-                  <code>{lesson.solutionCode}</code>
-                </pre>
-              </div>
-            )}
-          </div>
-        </section>
-
-        {/* RIGHT PANEL: CODE EDITOR + STAGE + TERMINAL (7 cols) */}
-        <section className="lg:col-span-7 space-y-4">
-          {/* DYNAMIC ERROR POINTER BANNER: Appears ONLY when an error occurs */}
-          {errorPointer && (
-            <div className="p-3.5 rounded-2xl bg-red-950/90 border-2 border-cursedRed text-xs shadow-lg animate-shake flex items-start gap-3">
-              <div className="p-1.5 rounded-xl bg-cursedRed/20 text-cursedRed shrink-0 mt-0.5">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-fantasy font-bold text-white bg-cursedRed px-2 py-0.5 rounded">
-                    Line {errorPointer.lineIndex + 1}
-                  </span>
-                  <span className="text-spellPink font-bold text-xs">
-                    {errorPointer.message}
-                  </span>
-                </div>
-                <div className="text-moonCream font-medium flex items-center gap-1.5 text-[11px] pt-0.5">
-                  <span className="text-runeAmber font-bold">👉 How to Fix:</span>
-                  <span>{errorPointer.suggestion}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* THE TEXT EDITOR ("type code here") */}
-          <div className="rounded-3xl bg-[#090610] border-2 border-magic/50 shadow-2xl overflow-hidden flex flex-col relative">
-            {/* Tab header */}
-            <div className="flex items-center justify-between px-4 py-2.5 bg-[#140e24] border-b border-purple-900/40 text-xs">
-              <div className="flex items-center gap-2">
-                <Code2 className="w-4 h-4 text-spellPink" />
-                <span className="font-code font-bold text-moonCream">main.py</span>
-                {/* The prominent "type code here" quote */}
-                <span className="text-[11px] font-code font-bold text-spellPink bg-spellPink/10 px-2 py-0.5 rounded border border-spellPink/30 ml-2">
-                  "type code here"
-                </span>
-              </div>
-
-              <div className="flex items-center gap-2">
-                <button
-                  onClick={() => {
-                    sound.playClick();
-                    navigator.clipboard.writeText(code);
-                    setCopiedCode(true);
-                    setTimeout(() => setCopiedCode(false), 2000);
-                  }}
-                  className="flex items-center gap-1 text-[11px] text-moonCream/70 hover:text-white px-2 py-1 rounded bg-white/5"
-                >
-                  {copiedCode ? <Check className="w-3 h-3 text-manaMint" /> : <Copy className="w-3 h-3" />}
-                  <span>{copiedCode ? 'Copied' : 'Copy'}</span>
-                </button>
-
-                <button
-                  onClick={() => {
-                    sound.playClick();
-                    setCode(lesson.initialCode);
-                    setErrorPointer(null);
-                  }}
-                  className="flex items-center gap-1 text-[11px] text-moonCream/70 hover:text-white px-2 py-1 rounded bg-white/5"
-                  title="Clear or reset to template"
-                >
-                  <RotateCcw className="w-3 h-3" /> Reset
-                </button>
-              </div>
-            </div>
-
-            {/* Editable Text Area with Line Numbers & Contextual Pointer */}
-            <div className="flex relative min-h-[190px]">
-              {/* Line Numbers */}
-              <div className="w-10 bg-[#0d0918] border-r border-white/5 p-3 select-none text-right font-code text-xs text-moonCream/30 leading-[20px]">
-                {Array.from({ length: Math.max(8, code.split('\n').length) }).map((_, i) => {
-                  const isErr = errorPointer?.lineIndex === i;
-                  const isActive = activeLine === i;
-
-                  return (
-                    <div
-                      key={i}
-                      className={
-                        isErr
-                          ? 'text-cursedRed font-bold bg-cursedRed/20 rounded'
-                          : isActive
-                          ? 'text-runeAmber font-bold animate-pulse'
-                          : ''
-                      }
-                    >
-                      {i + 1}
-                    </div>
-                  );
-                })}
-              </div>
-
-              {/* Textarea: User types code here */}
-              <div className="flex-1 relative">
-                <textarea
-                  ref={textareaRef}
-                  value={code}
-                  onChange={(e) => {
-                    setCode(e.target.value);
-                    if (errorPointer) setErrorPointer(null);
-                  }}
-                  spellCheck={false}
-                  placeholder={`# 🪄 "type code here" — Inscribe your instructions\n# Follow the tasks on the left!`}
-                  className="w-full h-full bg-transparent text-manaMint font-code text-xs p-3 focus:outline-none resize-none leading-[20px] selection:bg-magic selection:text-white"
-                />
-
-                {/* CONTEXTUAL ARROW: Points inside editor ONLY when editor is empty */}
-                {isEditorEmpty && (
-                  <div className="absolute top-14 left-4 flex items-center gap-2 pointer-events-none text-xs text-spellPink font-code bg-black/60 px-3 py-1.5 rounded-xl border border-spellPink/40 animate-pulse">
-                    <span className="text-base font-black">👉</span>
-                    <span>
-                      Start typing here: <code className="text-manaMint font-bold">{lesson.tasks[0]?.codeKeyword}</code>
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Run Code / Cast Spell Bar */}
-            <div className="p-3 bg-[#140e24] border-t border-purple-900/40 flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <button
-                  onClick={handleRunCode}
-                  disabled={isExecuting}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-magic via-spellPink to-manaMint text-night-950 font-fantasy font-black text-xs shadow-magic hover:opacity-95 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
-                >
-                  <Play className="w-4 h-4 fill-current" />
-                  <span>{isExecuting ? 'Running Magic...' : '▶ Cast Spell (Run Code)'}</span>
-                </button>
-
-                {/* CONTEXTUAL ARROW: Points to Cast Spell ONLY when ready to run */}
-                {isReadyToRun && (
-                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-manaMint font-fantasy font-bold animate-pulse">
-                    <ArrowLeft className="w-3.5 h-3.5 text-manaMint animate-bounce" />
-                    <span>All set! Click Cast Spell!</span>
-                  </div>
-                )}
-              </div>
-
-              <button
-                onClick={resetStage}
-                disabled={isExecuting}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-moonCream/80 text-xs border border-white/10"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Stage</span>
-              </button>
-            </div>
-          </div>
-
-          {/* VISUAL STAGE (DRAGON, GARDEN, CAULDRON, ETC.) */}
+      {/* 3. MAIN CENTERED WORKSPACE (STAGE + EDITOR) */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        {/* LEFT COLUMN: THE MAGICAL STAGE (5 cols) */}
+        <section className="lg:col-span-5 space-y-4">
           <div className="rounded-3xl bg-[#140e24] border border-purple-900/40 p-4 shadow-xl">
             <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 text-xs">
               <span className="font-fantasy font-bold text-moonCream flex items-center gap-1.5">
@@ -1463,6 +1221,186 @@ export const CodedexApp: React.FC = () => {
               </div>
             )}
           </div>
+        </section>
+
+        {/* RIGHT COLUMN: CODE EDITOR & OUTPUT (7 cols) */}
+        <section className="lg:col-span-7 space-y-4">
+          {/* Quick Hint Card */}
+          {showHint && (
+            <div className="p-3 rounded-2xl bg-amber-950/60 border border-runeAmber/40 text-xs text-moonCream/95 animate-fadeIn flex items-start gap-2.5 shadow-lg">
+              <Lightbulb className="w-4 h-4 text-runeAmber shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <strong className="text-runeAmber">Hint:</strong> {lesson.hint}
+              </div>
+            </div>
+          )}
+
+          {/* Solution Banner */}
+          {showSolution && (
+            <div className="p-3.5 rounded-2xl bg-purple-950/80 border border-spellPink/50 text-xs space-y-2 animate-fadeIn shadow-xl">
+              <div className="font-fantasy font-bold text-spellPink flex items-center justify-between">
+                <span>📜 Solution Code</span>
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setCode(lesson.solutionCode);
+                  }}
+                  className="text-[10px] px-2.5 py-1 rounded-lg bg-spellPink text-night-950 font-bold hover:bg-white transition-colors cursor-pointer"
+                >
+                  Insert to Editor
+                </button>
+              </div>
+              <pre className="p-2.5 rounded-xl bg-night-950 font-code text-xs text-manaMint overflow-x-auto">
+                <code>{lesson.solutionCode}</code>
+              </pre>
+            </div>
+          )}
+
+          {errorPointer && (
+            <div className="p-3.5 rounded-2xl bg-red-950/90 border-2 border-cursedRed text-xs shadow-lg animate-shake flex items-start gap-3">
+              <div className="p-1.5 rounded-xl bg-cursedRed/20 text-cursedRed shrink-0 mt-0.5">
+                <AlertTriangle className="w-4 h-4" />
+              </div>
+              <div className="flex-1 space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="font-fantasy font-bold text-white bg-cursedRed px-2 py-0.5 rounded">
+                    Line {errorPointer.lineIndex + 1}
+                  </span>
+                  <span className="text-spellPink font-bold text-xs">
+                    {errorPointer.message}
+                  </span>
+                </div>
+                <div className="text-moonCream font-medium flex items-center gap-1.5 text-[11px] pt-0.5">
+                  <span className="text-runeAmber font-bold">👉 How to Fix:</span>
+                  <span>{errorPointer.suggestion}</span>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* THE TEXT EDITOR ("type code here") */}
+          <div className="rounded-3xl bg-[#090610] border-2 border-magic/50 shadow-2xl overflow-hidden flex flex-col relative">
+            {/* Tab header */}
+            <div className="flex items-center justify-between px-4 py-2.5 bg-[#140e24] border-b border-purple-900/40 text-xs">
+              <div className="flex items-center gap-2">
+                <Code2 className="w-4 h-4 text-spellPink" />
+                <span className="font-code font-bold text-moonCream">main.py</span>
+                {/* The prominent "type code here" quote */}
+                <span className="text-[11px] font-code font-bold text-spellPink bg-spellPink/10 px-2 py-0.5 rounded border border-spellPink/30 ml-2">
+                  "type code here"
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    navigator.clipboard.writeText(code);
+                    setCopiedCode(true);
+                    setTimeout(() => setCopiedCode(false), 2000);
+                  }}
+                  className="flex items-center gap-1 text-[11px] text-moonCream/70 hover:text-white px-2 py-1 rounded bg-white/5"
+                >
+                  {copiedCode ? <Check className="w-3 h-3 text-manaMint" /> : <Copy className="w-3 h-3" />}
+                  <span>{copiedCode ? 'Copied' : 'Copy'}</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setCode(lesson.initialCode);
+                    setErrorPointer(null);
+                  }}
+                  className="flex items-center gap-1 text-[11px] text-moonCream/70 hover:text-white px-2 py-1 rounded bg-white/5"
+                  title="Clear or reset to template"
+                >
+                  <RotateCcw className="w-3 h-3" /> Reset
+                </button>
+              </div>
+            </div>
+
+            {/* Editable Text Area with Line Numbers & Contextual Pointer */}
+            <div className="flex relative min-h-[190px]">
+              {/* Line Numbers */}
+              <div className="w-10 bg-[#0d0918] border-r border-white/5 p-3 select-none text-right font-code text-xs text-moonCream/30 leading-[20px]">
+                {Array.from({ length: Math.max(8, code.split('\n').length) }).map((_, i) => {
+                  const isErr = errorPointer?.lineIndex === i;
+                  const isActive = activeLine === i;
+
+                  return (
+                    <div
+                      key={i}
+                      className={
+                        isErr
+                          ? 'text-cursedRed font-bold bg-cursedRed/20 rounded'
+                          : isActive
+                          ? 'text-runeAmber font-bold animate-pulse'
+                          : ''
+                      }
+                    >
+                      {i + 1}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Textarea: User types code here */}
+              <div className="flex-1 relative">
+                <textarea
+                  ref={textareaRef}
+                  value={code}
+                  onChange={(e) => {
+                    setCode(e.target.value);
+                    if (errorPointer) setErrorPointer(null);
+                  }}
+                  spellCheck={false}
+                  placeholder={`# 🪄 "type code here" — Inscribe your instructions\n# Follow the tasks on the left!`}
+                  className="w-full h-full bg-transparent text-manaMint font-code text-xs p-3 focus:outline-none resize-none leading-[20px] selection:bg-magic selection:text-white"
+                />
+
+                {/* CONTEXTUAL ARROW: Points inside editor ONLY when editor is empty */}
+                {isEditorEmpty && (
+                  <div className="absolute top-14 left-4 flex items-center gap-2 pointer-events-none text-xs text-spellPink font-code bg-black/60 px-3 py-1.5 rounded-xl border border-spellPink/40 animate-pulse">
+                    <span className="text-base font-black">👉</span>
+                    <span>
+                      Start typing here: <code className="text-manaMint font-bold">{lesson.tasks[0]?.codeKeyword}</code>
+                    </span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Run Code / Cast Spell Bar */}
+            <div className="p-3 bg-[#140e24] border-t border-purple-900/40 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={handleRunCode}
+                  disabled={isExecuting}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-magic via-spellPink to-manaMint text-night-950 font-fantasy font-black text-xs shadow-magic hover:opacity-95 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                >
+                  <Play className="w-4 h-4 fill-current" />
+                  <span>{isExecuting ? 'Running Magic...' : '▶ Cast Spell (Run Code)'}</span>
+                </button>
+
+                {/* CONTEXTUAL ARROW: Points to Cast Spell ONLY when ready to run */}
+                {isReadyToRun && (
+                  <div className="hidden sm:flex items-center gap-1.5 text-xs text-manaMint font-fantasy font-bold animate-pulse">
+                    <ArrowLeft className="w-3.5 h-3.5 text-manaMint animate-bounce" />
+                    <span>All set! Click Cast Spell!</span>
+                  </div>
+                )}
+              </div>
+
+              <button
+                onClick={resetStage}
+                disabled={isExecuting}
+                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-moonCream/80 text-xs border border-white/10"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Stage</span>
+              </button>
+            </div>
+          </div>
 
           {/* TERMINAL CONSOLE OUTPUT */}
           <div className="rounded-3xl bg-[#090610] border border-white/10 overflow-hidden shadow-lg">
@@ -1494,6 +1432,142 @@ export const CodedexApp: React.FC = () => {
           </div>
         </section>
       </main>
+
+      {/* 4. TUTORIAL POPUP MODAL (Clean, Informative, Dismissible) */}
+      {isTutorialOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
+          <div className="w-full max-w-2xl bg-[#151026] border-2 border-magic/50 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto relative text-moonCream">
+            {/* Header */}
+            <div className="flex items-start justify-between pb-4 border-b border-white/10">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-md bg-magic/20 border border-magic/40 text-spellPink text-xs font-pixel uppercase">
+                    {lesson.chapter}
+                  </span>
+                  <span className="text-xs font-code text-manaMint font-semibold">
+                    {completedLessons.includes(lesson.id) ? '✓ Completed' : 'In Progress'}
+                  </span>
+                </div>
+                <h2 className="font-fantasy font-black text-2xl text-moonCream">
+                  {lesson.title}
+                </h2>
+                <div className="text-xs text-magic-light">
+                  Concept: <strong className="text-moonCream">{lesson.conceptName}</strong>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  setIsTutorialOpen(false);
+                }}
+                className="p-2 rounded-xl bg-white/5 hover:bg-white/15 text-white/70 hover:text-white transition-colors cursor-pointer"
+                title="Close Tutorial"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Section 1: Concept Explanation */}
+            <div className="space-y-2">
+              <h3 className="font-fantasy font-bold text-sm text-moonCream flex items-center gap-1.5">
+                <span>📖</span> {lesson.whatIsThisTitle}
+              </h3>
+              <p className="text-xs text-moonCream/85 leading-relaxed">
+                {lesson.whatIsThisBody}
+              </p>
+              {lesson.whatIsThisCallout && (
+                <div className="p-3 rounded-xl bg-magic/15 border border-magic/30 text-xs text-magic-light leading-snug">
+                  💡 <strong>Key Insight:</strong> {lesson.whatIsThisCallout}
+                </div>
+              )}
+            </div>
+
+            {/* Section 2: How to write it (Syntax Example) */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <h3 className="font-fantasy font-bold text-sm text-moonCream flex items-center gap-1.5">
+                  <span>🪄</span> {lesson.howToWriteTitle}
+                </h3>
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setCode(lesson.codeExample);
+                    setIsTutorialOpen(false);
+                  }}
+                  className="text-[10px] px-2.5 py-1 rounded-lg bg-magic/25 hover:bg-magic/40 border border-magic/50 text-spellPink font-bold transition-colors cursor-pointer"
+                >
+                  Insert Example into Editor
+                </button>
+              </div>
+              <p className="text-xs text-moonCream/85 leading-relaxed">
+                {lesson.howToWriteBody}
+              </p>
+              <pre className="p-3 rounded-2xl bg-[#090610] border border-purple-900/50 font-code text-xs text-manaMint overflow-x-auto leading-relaxed shadow-inner">
+                <code>{lesson.codeExample}</code>
+              </pre>
+            </div>
+
+            {/* Section 3: Quest Tasks */}
+            <div className="space-y-2.5 pt-3 border-t border-white/10">
+              <h3 className="font-fantasy font-bold text-sm text-moonCream flex items-center gap-1.5">
+                <span>🎯</span> Quest Tasks
+              </h3>
+              <p className="text-xs text-moonCream/80 font-medium">
+                {lesson.taskObjective}
+              </p>
+
+              <div className="space-y-2">
+                {lesson.tasks.map((task, idx) => {
+                  const typed = isTaskTyped(task.codeKeyword);
+
+                  return (
+                    <div
+                      key={task.id}
+                      className={
+                        "p-2.5 rounded-xl border text-xs flex items-start gap-2.5 transition-all " +
+                        (typed
+                          ? "bg-emerald-950/40 border-manaMint/40 text-moonCream"
+                          : "bg-night-950/60 border-white/10 text-moonCream/70")
+                      }
+                    >
+                      <div
+                        className={
+                          "w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold " +
+                          (typed ? "bg-manaMint text-night-950" : "border border-white/30 text-white/40")
+                        }
+                      >
+                        {typed ? "✓" : idx + 1}
+                      </div>
+                      <div className="flex-1">
+                        <span className={typed ? "text-manaMint font-semibold" : ""}>
+                          {task.description}
+                        </span>
+                        <div className="text-[10px] text-magic-light font-code mt-0.5">
+                          Code: <code>{task.codeKeyword}</code>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Modal Footer: Got it button */}
+            <div className="pt-4 border-t border-white/10 flex items-center justify-end">
+              <button
+                onClick={() => {
+                  sound.playClick();
+                  setIsTutorialOpen(false);
+                }}
+                className="w-full sm:w-auto px-8 py-3 rounded-xl bg-gradient-to-r from-magic to-spellPink text-night-950 font-fantasy font-black text-xs uppercase tracking-wider shadow-magic hover:opacity-95 transition-all cursor-pointer text-center"
+              >
+                🚀 Got it, Let's Code!
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
