@@ -23,7 +23,7 @@ import {
 import confetti from 'canvas-confetti';
 import { sound } from '../../utils/sound';
 import { CODEDEX_LESSONS, CodedexLesson } from '../../data/codedexLessons';
-import homeBg from '../../assets/home-bg-sharp.png';
+import homeBg from '/home-bg-2k.png';
 import { ArcaneTerminalModal } from './ArcaneTerminalModal';
 import { SparkyCompanionModal } from './SparkyCompanionModal';
 
@@ -32,31 +32,12 @@ export interface CodedexHomeProps {
 }
 
 export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) => {
-  // Theme state with localStorage persistence
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-    try {
-      const savedTheme = localStorage.getItem('spellscript_theme');
-      return savedTheme ? savedTheme === 'dark' : true;
-    } catch {
-      return true;
-    }
-  });
-
-  // Toggle theme
-  const toggleTheme = () => {
-    sound.playClick();
-    const newTheme = !isDarkMode;
-    setIsDarkMode(newTheme);
-    try {
-      localStorage.setItem('spellscript_theme', newTheme ? 'dark' : 'light');
-    } catch {
-      // ignore
-    }
-  };
+  // Always dark fantasy theme
+  const isDarkMode = true;
 
   // Mascot Modal state
-  const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(false);
   const [isSparkyOpen, setIsSparkyOpen] = useState<boolean>(false);
+  const [isTerminalOpen, setIsTerminalOpen] = useState<boolean>(false);
 
   // Nav Dropdowns
   const [isLearnOpen, setIsLearnOpen] = useState<boolean>(false);
@@ -189,186 +170,10 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
             </div>
           </div>
 
-          {/* Nav Links with Working Dropdowns */}
-          <div
-            className={`hidden md:flex items-center gap-5 text-sm font-semibold transition-colors ${
-              isDarkMode ? 'text-[#EDE9FE]' : 'text-[#3B1D66]'
-            }`}
-          >
-            {/* Learn Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  setIsLearnOpen(!isLearnOpen);
-                  setIsPracticeOpen(false);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-                  isLearnOpen
-                    ? isDarkMode
-                      ? 'bg-[#8B5CF6]/20 text-white'
-                      : 'bg-[#DDD6FE]/40 text-[#6D28D9]'
-                    : isDarkMode
-                    ? 'hover:text-white hover:bg-white/5'
-                    : 'hover:text-[#6D28D9] hover:bg-purple-50'
-                }`}
-              >
-                <span>Learn</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isLearnOpen ? 'rotate-180' : ''}`} />
-              </button>
+          {/* Middle Nav Links */}
+          <div className="flex-1" />
 
-              {isLearnOpen && (
-                <div
-                  className={`absolute top-full left-0 mt-2 w-72 rounded-2xl p-2 shadow-2xl border backdrop-blur-xl z-50 animate-fadeIn ${
-                    isDarkMode
-                      ? 'bg-[#1A1230]/95 border-[#8B5CF6]/40 text-[#FFF7ED]'
-                      : 'bg-white/95 border-[#DDD6FE] text-[#231238]'
-                  }`}
-                >
-                  <div className="px-3 py-1.5 text-[10px] font-pixel uppercase tracking-wider text-[#A78BFA]">
-                    Curriculum Chapters
-                  </div>
-                  {CODEDEX_LESSONS.map((l) => (
-                    <button
-                      key={l.id}
-                      onClick={() => {
-                        sound.playWandCast();
-                        setIsLearnOpen(false);
-                        onStartAdventure(l.id);
-                      }}
-                      className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-3 transition-colors ${
-                        isDarkMode ? 'hover:bg-[#8B5CF6]/20' : 'hover:bg-purple-50'
-                      }`}
-                    >
-                      <span className="text-lg">
-                        {l.stageType === 'dragon'
-                          ? '🐲'
-                          : l.stageType === 'potion'
-                          ? '⚗️'
-                          : l.stageType === 'garden'
-                          ? '🌸'
-                          : l.stageType === 'bridge'
-                          ? '🔮'
-                          : '⚡'}
-                      </span>
-                      <div className="flex-1 overflow-hidden">
-                        <div className="text-xs font-bold truncate">{l.title}</div>
-                        <div className={`text-[11px] truncate ${isDarkMode ? 'text-[#A78BFA]' : 'text-[#6D28D9]'}`}>
-                          {l.conceptName}
-                        </div>
-                      </div>
-                      <ArrowRight className="w-3.5 h-3.5 opacity-50" />
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Practice Dropdown */}
-            <div className="relative">
-              <button
-                onClick={() => {
-                  sound.playClick();
-                  setIsPracticeOpen(!isPracticeOpen);
-                  setIsLearnOpen(false);
-                }}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-colors ${
-                  isPracticeOpen
-                    ? isDarkMode
-                      ? 'bg-[#8B5CF6]/20 text-white'
-                      : 'bg-[#DDD6FE]/40 text-[#6D28D9]'
-                    : isDarkMode
-                    ? 'hover:text-white hover:bg-white/5'
-                    : 'hover:text-[#6D28D9] hover:bg-purple-50'
-                }`}
-              >
-                <span>Practice</span>
-                <ChevronDown className={`w-3.5 h-3.5 transition-transform duration-200 ${isPracticeOpen ? 'rotate-180' : ''}`} />
-              </button>
-
-              {isPracticeOpen && (
-                <div
-                  className={`absolute top-full left-0 mt-2 w-64 rounded-2xl p-2 shadow-2xl border backdrop-blur-xl z-50 animate-fadeIn ${
-                    isDarkMode
-                      ? 'bg-[#1A1230]/95 border-[#8B5CF6]/40 text-[#FFF7ED]'
-                      : 'bg-white/95 border-[#DDD6FE] text-[#231238]'
-                  }`}
-                >
-                  <div className="px-3 py-1.5 text-[10px] font-pixel uppercase tracking-wider text-[#A78BFA]">
-                    Interactive Trials
-                  </div>
-                  <button
-                    onClick={() => {
-                      sound.playWandCast();
-                      setIsPracticeOpen(false);
-                      onStartAdventure(1);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-bold transition-colors ${
-                      isDarkMode ? 'hover:bg-[#8B5CF6]/20' : 'hover:bg-purple-50'
-                    }`}
-                  >
-                    <span>🐉</span>
-                    <span>Dragon Movement Trial</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      sound.playWandCast();
-                      setIsPracticeOpen(false);
-                      onStartAdventure(2);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-bold transition-colors ${
-                      isDarkMode ? 'hover:bg-[#8B5CF6]/20' : 'hover:bg-purple-50'
-                    }`}
-                  >
-                    <span>⚗️</span>
-                    <span>Potion Variable Lab</span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      sound.playWandCast();
-                      setIsPracticeOpen(false);
-                      onStartAdventure(3);
-                    }}
-                    className={`w-full text-left px-3 py-2 rounded-xl flex items-center gap-2.5 text-xs font-bold transition-colors ${
-                      isDarkMode ? 'hover:bg-[#8B5CF6]/20' : 'hover:bg-purple-50'
-                    }`}
-                  >
-                    <span>🌸</span>
-                    <span>Blossom Loop Repetition</span>
-                  </button>
-                </div>
-              )}
-            </div>
-
-            {/* Build Button */}
-            <button
-              onClick={() => {
-                sound.playVictoryFanfare();
-                onStartAdventure(4);
-              }}
-              className={`px-3 py-1.5 rounded-lg transition-colors ${
-                isDarkMode ? 'hover:text-white hover:bg-white/5' : 'hover:text-[#6D28D9] hover:bg-purple-50'
-              }`}
-            >
-              Build
-            </button>
-
-            {/* Curse Breaker Button */}
-            <button
-              onClick={() => {
-                sound.playWandCast();
-                onStartAdventure(5);
-              }}
-              className={`px-3 py-1.5 rounded-lg flex items-center gap-1 transition-colors ${
-                isDarkMode ? 'hover:text-white hover:bg-white/5' : 'hover:text-[#6D28D9] hover:bg-purple-50'
-              }`}
-            >
-              <Zap className="w-3.5 h-3.5 text-[#F472B6]" />
-              <span>Curse Breaker</span>
-            </button>
-          </div>
-
-          {/* Right actions: Search, Theme, Sign up button */}
+          {/* Right actions: Search and Sign up button */}
           <div className="flex items-center gap-2.5">
             {/* Search Button */}
             <button
@@ -376,35 +181,14 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
                 sound.playClick();
                 setIsSearchOpen(true);
               }}
-              className={`p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold ${
-                isDarkMode
-                  ? 'border-[#8B5CF6]/30 bg-[#1A1230]/60 text-[#EDE9FE] hover:text-white hover:border-[#8B5CF6]/60 hover:bg-[#8B5CF6]/10'
-                  : 'border-[#DDD6FE] bg-purple-50/60 text-[#3B1D66] hover:text-[#6D28D9] hover:border-[#8B5CF6]/50 hover:bg-white'
-              }`}
+              className="p-2 rounded-xl border transition-all flex items-center gap-1.5 text-xs font-semibold border-[#8B5CF6]/30 bg-[#1A1230]/60 text-[#EDE9FE] hover:text-white hover:border-[#8B5CF6]/60 hover:bg-[#8B5CF6]/10 cursor-pointer"
               title="Search spells and chapters (Press / or Cmd+K)"
             >
               <Search className="w-4 h-4 text-[#F472B6]" />
               <span className="hidden sm:inline opacity-80">Search</span>
-              <kbd
-                className={`hidden lg:inline text-[9px] px-1.5 py-0.5 rounded font-code border ${
-                  isDarkMode ? 'bg-black/40 border-white/10 text-white/60' : 'bg-gray-100 border-gray-200 text-gray-500'
-                }`}
-              >
+              <kbd className="hidden lg:inline text-[9px] px-1.5 py-0.5 rounded font-code border bg-black/40 border-white/10 text-white/60">
                 /
               </kbd>
-            </button>
-
-            {/* Dark & Light Theme Toggle Button */}
-            <button
-              onClick={toggleTheme}
-              className={`p-2 rounded-xl border transition-all ${
-                isDarkMode
-                  ? 'border-[#8B5CF6]/30 bg-[#1A1230]/60 text-amber-300 hover:bg-[#8B5CF6]/10 hover:border-[#8B5CF6]/60'
-                  : 'border-[#DDD6FE] bg-purple-50/60 text-indigo-700 hover:bg-white hover:border-[#8B5CF6]/50'
-              }`}
-              title={isDarkMode ? 'Switch to Light Theme' : 'Switch to Dark Theme'}
-            >
-              {isDarkMode ? <Sun className="w-4 h-4 text-amber-300" /> : <Moon className="w-4 h-4 text-indigo-700" />}
             </button>
 
             {/* Sign Up Retro Magic Button */}
@@ -469,56 +253,11 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
           />
         </div>
 
-        {/* 🖥️ Retro Computer Mascot Button → Opens Arcane Terminal Sandbox */}
-        <div className="absolute bottom-6 sm:bottom-10 left-6 sm:left-14 z-20 hidden md:flex items-end gap-3 drop-shadow-2xl">
-          {/* Computer terminal button */}
+        {/* 🐲 Sparky Dragon Mascot Companion Button */}
+        <div className="absolute bottom-6 sm:bottom-10 left-6 sm:left-14 z-20 flex items-end drop-shadow-2xl">
           <div className="flex flex-col items-center gap-1 group">
             <div
-              className={`opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-y-1 group-hover:translate-y-0 pointer-events-none whitespace-nowrap px-2.5 py-1 rounded-lg text-[11px] font-pixel font-bold shadow-lg border ${
-                isDarkMode
-                  ? 'bg-[#120C22]/95 border-[#5EEAD4]/50 text-[#5EEAD4]'
-                  : 'bg-white border-teal-400/60 text-teal-700'
-              }`}
-            >
-              ⌨️ Terminal Sandbox
-            </div>
-            <button
-              onClick={() => {
-                sound.playClick();
-                setIsTerminalOpen(true);
-              }}
-              className={`relative animate-float cursor-pointer select-none rounded-xl transition-all duration-200 hover:scale-110 active:scale-95 group-hover:shadow-[0_0_24px_rgba(94,234,212,0.7)] focus:outline-none focus:ring-2 focus:ring-[#5EEAD4]`}
-              title="Open Arcane Terminal Sandbox (⌨️)"
-              aria-label="Open Arcane Terminal Code Sandbox"
-            >
-              <div
-                className={`w-[72px] h-[64px] backdrop-blur-md border-2 rounded-xl shadow-xl p-2 flex flex-col items-center justify-between transition-colors ${
-                  isDarkMode
-                    ? 'bg-[#1E1338]/90 border-[#5EEAD4]/60 shadow-[0_6px_0_#140B28] group-hover:border-[#5EEAD4]'
-                    : 'bg-white/90 border-[#A78BFA] shadow-[0_6px_0_#C4B5FD] group-hover:border-teal-400'
-                }`}
-              >
-                <div className="w-full h-[44px] bg-[#5EEAD4] border border-[#6D28D9] rounded-lg flex items-center justify-center font-pixel text-[#120C22] font-bold text-xs select-none shadow-inner">
-                  (•‿•)
-                </div>
-                <div className="w-3 h-1 bg-[#8B5CF6] rounded-full self-end mr-1" />
-              </div>
-              <div
-                className={`w-12 h-3 border rounded-md mx-auto -mt-1 shadow-md ${
-                  isDarkMode ? 'bg-[#160D2A] border-[#6D28D9]' : 'bg-gray-200 border-[#A78BFA]'
-                }`}
-              />
-            </button>
-          </div>
-
-          {/* Sparky Dragon button */}
-          <div className="flex flex-col items-center gap-1 group">
-            <div
-              className={`opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-y-1 group-hover:translate-y-0 pointer-events-none whitespace-nowrap px-2.5 py-1 rounded-lg text-[11px] font-pixel font-bold shadow-lg border ${
-                isDarkMode
-                  ? 'bg-[#120C22]/95 border-[#F472B6]/50 text-[#F472B6]'
-                  : 'bg-white border-pink-400/60 text-pink-700'
-              }`}
+              className="opacity-0 group-hover:opacity-100 transition-all duration-200 -translate-y-1 group-hover:translate-y-0 pointer-events-none whitespace-nowrap px-2.5 py-1 rounded-lg text-[11px] font-pixel font-bold shadow-lg border bg-[#120C22]/95 border-[#F472B6]/50 text-[#F472B6]"
             >
               🐲 Talk to Sparky!
             </div>
