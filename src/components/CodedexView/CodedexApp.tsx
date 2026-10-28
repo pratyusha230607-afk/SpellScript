@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import confetti from 'canvas-confetti';
+import { motion, AnimatePresence } from 'framer-motion';
+import { cn } from '../../lib/utils';
 import { CODEDEX_LESSONS, CodedexLesson } from '../../data/codedexLessons';
 import { CodedexHome } from '../CodedexHome/CodedexHome';
 import { sound } from '../../utils/sound';
@@ -11,6 +13,9 @@ import {
   VolumeX,
   CheckCircle2,
   ChevronRight,
+  ChevronLeft,
+  ChevronDown,
+  ChevronUp,
   Code2,
   Copy,
   Check,
@@ -27,6 +32,7 @@ import {
   BookOpen,
   HelpCircle,
   X,
+  Menu,
 } from 'lucide-react';
 
 interface ErrorPointer {
@@ -35,6 +41,17 @@ interface ErrorPointer {
   suggestion: string;
   tileCoords?: { x: number; y: number };
 }
+
+const stageInfo: Record<string, { emoji: string; name: string }> = {
+  dragon: { emoji: '🐲', name: "Dragon's Lair" },
+  potion: { emoji: '⚗️', name: "Alchemist's Cauldron" },
+  garden: { emoji: '🌸', name: 'Enchanted Garden' },
+  bridge: { emoji: '🌉', name: 'Crystal Bridge' },
+  curse: { emoji: '⚡', name: 'Curse Breaker' },
+  stargate: { emoji: '🌌', name: 'Cosmic Stargate' },
+  chrono: { emoji: '⏳', name: 'Chrono Matrix' },
+  boss: { emoji: '👾', name: 'Boss Arena' },
+};
 
 export const CodedexApp: React.FC = () => {
   // Navigation View: 'home' (Codédex Hero Meadow) or 'quest' (Coding Lab)
@@ -112,6 +129,10 @@ export const CodedexApp: React.FC = () => {
   const [isMuted, setIsMuted] = useState<boolean>(sound.getMuted());
   const [copiedCode, setCopiedCode] = useState<boolean>(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  // New UI state
+  const [isChapterDrawerOpen, setIsChapterDrawerOpen] = useState<boolean>(false);
+  const [showTerminal, setShowTerminal] = useState<boolean>(false);
 
   // Sync when lesson changes
   useEffect(() => {
@@ -658,6 +679,8 @@ export const CodedexApp: React.FC = () => {
   // 3. Is user ready to run code?
   const isReadyToRun = allTasksTyped && !questSuccess && !isExecuting && !errorPointer;
 
+  const currentStageInfo = stageInfo[lesson.stageType] ?? { emoji: '✨', name: 'Magic Stage' };
+
   // Render Homepage if user is on 'home' view
   if (currentView === 'home') {
     return (
@@ -672,9 +695,9 @@ export const CodedexApp: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#0e0a19] text-[#FFF2D8] flex flex-col font-body selection:bg-magic selection:text-white">
-      {/* 1. TOP NAVBAR */}
+      {/* ── NAVBAR ── */}
       <header className="w-full bg-[#151024]/95 backdrop-blur-md border-b border-purple-900/40 px-4 py-2.5 sticky top-0 z-40 shadow-md">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3">
           {/* Logo with click to return to home */}
           <div
             onClick={() => {
@@ -682,71 +705,30 @@ export const CodedexApp: React.FC = () => {
               setCurrentView('home');
             }}
             className="flex items-center gap-2.5 select-none cursor-pointer group shrink-0"
+            title="Return to Academy"
           >
             <div className="w-8 h-8 rounded-lg bg-[#8B5CF6] border border-[#6D28D9] shadow-[0_2px_0_#4C1D95] flex items-center justify-center text-sm font-pixel text-white group-hover:scale-105 transition-transform">
               🪄
             </div>
-            <div>
-              <div className="font-fantasy font-black text-base text-moonCream tracking-wider flex items-center gap-1.5 leading-tight group-hover:text-spellPink transition-colors">
-                SpellScript <Sparkles className="w-3.5 h-3.5 text-spellPink" />
-              </div>
-              <div className="text-[10px] text-magic-light font-code">Codédex Magic Academy</div>
+            <div className="font-fantasy font-black text-base text-moonCream tracking-wider flex items-center gap-1.5 leading-tight group-hover:text-spellPink transition-colors">
+              SpellScript <Sparkles className="w-3.5 h-3.5 text-spellPink" />
             </div>
           </div>
 
-          {/* Quest Selector Buttons (Chapter 1..8) */}
-          <div className="flex items-center gap-1.5 overflow-x-auto py-1 scrollbar-none">
-            {CODEDEX_LESSONS.map((l) => {
-              const isCurrent = l.id === currentLessonId;
-              const isDone = completedLessons.includes(l.id);
+          {/* Spacer */}
+          <div className="flex-1" />
 
-              return (
-                <button
-                  key={l.id}
-                  onClick={() => {
-                    sound.playClick();
-                    setCurrentLessonId(l.id);
-                  }}
-                  className={`px-3 py-1.5 rounded-xl text-xs font-fantasy font-bold transition-all flex items-center gap-1.5 shrink-0 ${
-                    isCurrent
-                      ? 'bg-gradient-to-r from-magic to-spellPink text-night-950 shadow-magic scale-105'
-                      : isDone
-                      ? 'bg-emerald-950/70 border border-manaMint/40 text-manaMint'
-                      : 'bg-white/5 hover:bg-white/10 text-moonCream/70'
-                  }`}
-                >
-                  <span>#{l.id}</span>
-                  <span className="hidden sm:inline">{l.title}</span>
-                  {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-manaMint" />}
-                </button>
-              );
-            })}
-          </div>
-
-          {/* Action Buttons: Tutorial, Hint, Sound, Home */}
+          {/* Action Buttons: Hint & Sound Toggle */}
           <div className="flex items-center gap-2 shrink-0">
-            <button
-              onClick={() => {
-                sound.playClick();
-                setIsTutorialOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-magic/20 hover:bg-magic/35 border border-magic/40 text-spellPink text-xs font-fantasy font-bold transition-all cursor-pointer shadow-sm"
-              title="Open Quest Tutorial & How to Play"
-            >
-              <BookOpen className="w-3.5 h-3.5" />
-              <span>Tutorial</span>
-            </button>
-
             <button
               onClick={() => {
                 sound.playClick();
                 setShowHint(!showHint);
               }}
-              className={`p-2 rounded-xl text-xs font-fantasy font-bold transition-colors cursor-pointer ${
-                showHint
-                  ? 'bg-amber-400 text-night-950'
-                  : 'bg-white/5 hover:bg-white/10 text-runeAmber'
-              }`}
+              className={cn(
+                'p-2 rounded-xl text-xs font-fantasy font-bold transition-colors cursor-pointer',
+                showHint ? 'bg-amber-400 text-night-950' : 'bg-white/5 hover:bg-white/10 text-runeAmber'
+              )}
               title="Need a Hint?"
             >
               <Lightbulb className="w-4 h-4" />
@@ -762,533 +744,147 @@ export const CodedexApp: React.FC = () => {
             >
               {isMuted ? <VolumeX className="w-4 h-4 text-red-400" /> : <Volume2 className="w-4 h-4" />}
             </button>
-
-            <button
-              onClick={() => {
-                sound.playClick();
-                setCurrentView('home');
-              }}
-              className="px-2.5 py-1.5 rounded-xl text-xs font-fantasy font-bold bg-white/5 hover:bg-white/10 text-moonCream/80 flex items-center gap-1 transition-all cursor-pointer"
-              title="Return to Home"
-            >
-              <span>🏠</span>
-              <span className="hidden sm:inline">Home</span>
-            </button>
           </div>
         </div>
       </header>
 
-      {/* 2. COMPACT OBJECTIVE HERO BAR (Clean & Focused) */}
-      <div className="w-full bg-[#130d22]/90 border-b border-purple-900/40 px-4 py-2.5">
-        <div className="max-w-7xl mx-auto flex flex-wrap items-center justify-between gap-3">
+      {/* ── CHAPTER NAV STRIP (TOP) ── */}
+      <div
+        className="w-full border-b border-purple-800/30 relative"
+        style={{ background: 'linear-gradient(135deg, #130a24 0%, #1f113a 50%, #130a24 100%)' }}
+      >
+        <div className="max-w-7xl mx-auto px-4 py-2 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <span className="px-2.5 py-0.5 rounded-md bg-magic/25 border border-magic/40 text-manaMint text-xs font-pixel uppercase tracking-wider">
+            {/* Chapters Trigger Pill */}
+            <button
+              onClick={() => {
+                sound.playClick();
+                setIsChapterDrawerOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-magic/20 hover:bg-magic/35 border border-magic/40 text-moonCream hover:text-white text-xs font-fantasy font-bold transition-all cursor-pointer shadow-sm active:scale-95"
+              title="Open Chapters Menu"
+            >
+              <Menu className="w-4 h-4 text-spellPink" />
+              <span>Chapters</span>
+            </button>
+
+            {/* Chapter Tag */}
+            <span className="font-pixel text-[10px] text-manaMint bg-manaMint/10 border border-manaMint/30 px-2.5 py-1 rounded-lg uppercase tracking-wider shrink-0 select-none">
               {lesson.chapter}
             </span>
-            <h1 className="font-fantasy font-black text-lg sm:text-xl text-moonCream">
-              {lesson.title}
-            </h1>
-            <span className="text-white/30 hidden sm:inline">•</span>
-            <p className="text-xs text-moonCream/80 font-medium hidden md:inline">
-              <span className="text-amber-400 font-semibold">Objective:</span> {lesson.taskObjective}
-            </p>
-          </div>
-
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => {
-                sound.playClick();
-                setIsTutorialOpen(true);
-              }}
-              className="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-magic/20 hover:bg-magic/35 border border-magic/40 text-xs text-spellPink font-fantasy font-bold transition-colors cursor-pointer shadow-sm"
-            >
-              <HelpCircle className="w-3.5 h-3.5" />
-              <span>How to play</span>
-            </button>
-
-            <button
-              onClick={() => {
-                sound.playClick();
-                setShowSolution(!showSolution);
-              }}
-              className="px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 border border-white/10 text-xs text-moonCream/70 font-fantasy transition-colors cursor-pointer"
-            >
-              {showSolution ? 'Hide Solution' : 'Solution'}
-            </button>
           </div>
         </div>
       </div>
 
-      {/* 3. MAIN CENTERED WORKSPACE (STAGE + EDITOR) */}
-      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        {/* LEFT COLUMN: THE MAGICAL STAGE (5 cols) */}
-        <section className="lg:col-span-5 space-y-4">
-          <div className="rounded-3xl bg-[#140e24] border border-purple-900/40 p-4 shadow-xl">
-            <div className="flex items-center justify-between pb-2 border-b border-white/10 mb-3 text-xs">
-              <span className="font-fantasy font-bold text-moonCream flex items-center gap-1.5">
-                <span>✨</span> The Magical Stage
-              </span>
-              <span className="text-[10px] text-magic-light font-code">Live Visual Response</span>
+      {/* ── DEDICATED TITLE & OBJECTIVE BANNER (BELOW) ── */}
+      <div
+        className="w-full border-b border-purple-800/40 shadow-xl relative overflow-hidden"
+        style={{
+          background: 'linear-gradient(135deg, #10081f 0%, #1c0e35 50%, #10081f 100%)',
+        }}
+      >
+        {/* Subtle accent sheen */}
+        <div
+          className="absolute inset-0 opacity-20 pointer-events-none"
+          style={{
+            backgroundImage:
+              'radial-gradient(circle at 10% 50%, rgba(243,169,212,0.2) 0%, transparent 40%), radial-gradient(circle at 90% 50%, rgba(146,116,216,0.18) 0%, transparent 40%)',
+          }}
+        />
+
+        <div className="max-w-7xl mx-auto px-4 py-3 sm:py-3.5 relative flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4">
+          {/* Quest Title */}
+          <h1
+            className="font-fantasy font-black text-xl sm:text-2xl tracking-wide select-none shrink-0"
+            style={{
+              background: 'linear-gradient(90deg, #fed894, #F3A9D4, #fed894)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+            }}
+          >
+            {lesson.title}
+          </h1>
+
+          {/* Quest Objective - Expands to fill all available horizontal space */}
+          <div className="w-full lg:flex-1 flex items-center gap-3 bg-[#090412]/85 border border-magic/35 rounded-2xl px-4 py-2.5 shadow-inner">
+            <div className="w-7 h-7 rounded-lg bg-magic/20 border border-magic/30 flex items-center justify-center text-sm shrink-0 shadow-sm">
+              🎯
             </div>
-
-            {/* STAGE CANVASES */}
-            <div className="flex items-center justify-center py-2">
-              {/* Level 1: Dragon 5x5 Grid */}
-              {lesson.stageType === 'dragon' && (
-                <div className="flex flex-col items-center gap-3">
-                  <div className="grid grid-cols-5 gap-2 p-3 rounded-2xl bg-[#090610] border border-magic/30 max-w-xs w-full aspect-square">
-                    {Array.from({ length: 25 }).map((_, idx) => {
-                      const x = idx % 5;
-                      const y = Math.floor(idx / 5);
-                      const isDragon = dragon.x === x && dragon.y === y;
-                      const isTarget = x === 2 && y === 2;
-                      const isRock = x === 1 && y === 1;
-                      const isErrorTile = errorPointer?.tileCoords?.x === x && errorPointer?.tileCoords?.y === y;
-
-                      return (
-                        <div
-                          key={idx}
-                          className={`relative rounded-xl border flex items-center justify-center transition-all ${
-                            isErrorTile
-                              ? 'bg-red-950/80 border-cursedRed ring-2 ring-cursedRed shadow-[0_0_15px_rgba(255,89,100,0.8)]'
-                              : isDragon
-                              ? 'bg-magic/35 border-magic shadow-magic scale-105'
-                              : isTarget
-                              ? 'bg-amber-500/20 border-amber-400/80 animate-pulse'
-                              : isRock
-                              ? 'bg-red-950/50 border-red-900/50'
-                              : 'bg-white/5 border-white/5'
-                          }`}
-                        >
-                          <span className="absolute top-0.5 left-1 text-[8px] text-white/20 select-none">
-                            {x},{y}
-                          </span>
-
-                          {/* DYNAMIC ERROR ARROW: Points directly to the blocked tile ONLY when error occurs */}
-                          {isErrorTile && (
-                            <div className="absolute -top-7 z-30 flex flex-col items-center animate-bounce pointer-events-none">
-                              <span className="text-[9px] font-bold text-white bg-cursedRed px-1.5 py-0.5 rounded shadow">
-                                Blocked!
-                              </span>
-                              <ArrowDown className="w-3.5 h-3.5 text-cursedRed stroke-[3]" />
-                            </div>
-                          )}
-
-                          {isTarget && (
-                            <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,179,71,0.9)] animate-bounce">
-                              💎
-                            </span>
-                          )}
-
-                          {isRock && <span className="text-lg">🪨</span>}
-
-                          {isDragon && (
-                            <div
-                              className={`text-2xl transition-transform duration-300 ${
-                                dragon.direction === 'RIGHT'
-                                  ? 'rotate-0'
-                                  : dragon.direction === 'DOWN'
-                                  ? 'rotate-90'
-                                  : dragon.direction === 'LEFT'
-                                  ? 'rotate-180 -scale-y-100'
-                                  : '-rotate-90'
-                              }`}
-                            >
-                              🐲
-                            </div>
-                          )}
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="text-xs text-moonCream/80 flex items-center gap-3 font-code">
-                    <span>Pos: ({dragon.x}, {dragon.y})</span>
-                    <span>Facing: {dragon.direction}</span>
-                    <span className="text-runeAmber font-bold">
-                      {collectedCrystal ? 'Crystal Collected 💎' : '0/1 Crystal'}
-                    </span>
-                  </div>
-                </div>
-              )}
-
-              {/* Level 2: Potion Cauldron */}
-              {lesson.stageType === 'potion' && (
-                <div className="flex flex-col items-center gap-4 w-full max-w-sm">
-                  <div className="grid grid-cols-2 gap-3 w-full">
-                    <div className="p-3 rounded-xl bg-night-950/80 border border-spellPink/40 text-center">
-                      <span className="text-2xl">🍾</span>
-                      <div className="text-xs font-code font-bold text-moonCream mt-1">mana_flask</div>
-                      <div className="text-sm font-bold text-spellPink font-code">
-                        {potionVars['mana_flask'] !== undefined ? potionVars['mana_flask'] : 'empty'}
-                      </div>
-                    </div>
-
-                    <div className="p-3 rounded-xl bg-night-950/80 border border-manaMint/40 text-center">
-                      <span className="text-2xl">✨</span>
-                      <div className="text-xs font-code font-bold text-moonCream mt-1">star_dew</div>
-                      <div className="text-sm font-bold text-manaMint font-code">
-                        {potionVars['star_dew'] !== undefined ? potionVars['star_dew'] : 'empty'}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="relative w-36 h-28 rounded-b-[3.5rem] bg-gradient-to-b from-[#35254a] to-[#160d21] border-4 border-[#523b72] flex items-center justify-center shadow-2xl">
-                    <div
-                      className={`w-28 h-16 rounded-b-[3rem] transition-all duration-700 flex items-center justify-center ${
-                        isBrewed
-                          ? 'bg-gradient-to-r from-spellPink via-magic to-manaMint shadow-[0_0_25px_rgba(243,169,212,0.8)]'
-                          : 'bg-purple-950/50'
-                      }`}
-                    >
-                      <span className="text-2xl animate-bounce">{isBrewed ? '🌟' : '🫧'}</span>
-                    </div>
-                  </div>
-
-                  <div className="text-xs text-moonCream/80 font-code">
-                    Cauldron: {isBrewed ? 'Elixir Transmuted! 🎉' : 'Awaiting ingredients...'}
-                  </div>
-                </div>
-              )}
-
-              {/* Level 3: Garden */}
-              {lesson.stageType === 'garden' && (
-                <div className="flex flex-col items-center gap-3 w-full max-w-sm">
-                  <div className="grid grid-cols-3 gap-2.5 p-3 rounded-2xl bg-[#0a1813] border border-manaMint/40 shadow-inner w-full">
-                    {Array.from({ length: 6 }).map((_, idx) => {
-                      const isBloomed = idx < bloomedFlowers;
-
-                      return (
-                        <div
-                          key={idx}
-                          className={`aspect-square rounded-xl flex flex-col items-center justify-center p-2 transition-all duration-300 ${
-                            isBloomed
-                              ? 'bg-manaMint/25 border border-manaMint shadow-mana scale-105'
-                              : 'bg-night-950/60 border border-white/5 opacity-40'
-                          }`}
-                        >
-                          <span className="text-3xl">{isBloomed ? '🌸' : '🌱'}</span>
-                          <span className="text-[10px] font-bold text-manaMint mt-1">
-                            {isBloomed ? `Bloom ${idx + 1}` : 'Seed'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="text-xs font-code font-bold text-manaMint">
-                    {bloomedFlowers} / 6 Flowers Bloomed
-                  </div>
-                </div>
-              )}
-
-              {/* Level 4: Bridge */}
-              {lesson.stageType === 'bridge' && (
-                <div className="flex items-center justify-between gap-1 w-full max-w-sm py-4">
-                  <div className="w-16 h-20 rounded-xl bg-[#2a1d47] border border-magic flex flex-col items-center justify-center text-xs">
-                    <span className="text-2xl">🧙‍♂️</span>
-                    <span className="text-[9px] text-white/60">Cliff</span>
-                  </div>
-
-                  {Array.from({ length: 4 }).map((_, i) => (
-                    <div
-                      key={i}
-                      className={`flex-1 h-12 rounded-lg border flex items-center justify-center text-xs transition-all ${
-                        i < bridgeTiles
-                          ? 'bg-gradient-to-t from-magic to-manaMint border-manaMint shadow-mana text-night-950 font-bold scale-105'
-                          : 'bg-white/5 border-dashed border-white/10 opacity-30'
-                      }`}
-                    >
-                      {i < bridgeTiles ? '✨' : ''}
-                    </div>
-                  ))}
-
-                  <div className="w-16 h-20 rounded-xl bg-[#2a1d47] border border-magic flex flex-col items-center justify-center text-xs">
-                    <span className="text-2xl">🏰</span>
-                    <span className="text-[9px] text-white/60">Tower</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Level 5: Curse */}
-              {lesson.stageType === 'curse' && (
-                <div className="flex flex-col items-center gap-3 w-full max-w-sm py-2">
-                  <div className="flex items-center justify-center gap-3">
-                    {[
-                      { id: 1, sym: 'ᚠ' },
-                      { id: 2, sym: 'ᚢ' },
-                      { id: 3, sym: 'ᚦ' },
-                    ].map((r) => {
-                      const isClean = purifiedRunes.includes(r.id);
-
-                      return (
-                        <div
-                          key={r.id}
-                          className={`w-16 h-20 rounded-xl border-2 flex flex-col items-center justify-center transition-all ${
-                            isClean
-                              ? 'bg-manaMint/20 border-manaMint text-manaMint shadow-mana scale-105'
-                              : 'bg-red-950/40 border-cursedRed text-cursedRed animate-pulse'
-                          }`}
-                        >
-                          <span className="text-2xl font-bold">{r.sym}</span>
-                          <span className="text-[10px] mt-1 font-code">#{r.id}</span>
-                          <span className="text-[8px] uppercase font-bold">
-                            {isClean ? 'Clean' : 'Cursed'}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </div>
-
-                  <div className="p-2.5 rounded-xl bg-night-950/70 border border-white/10 text-center w-full text-xs">
-                    Dungeon Vault:{' '}
-                    <strong className={purifiedRunes.length === 3 ? 'text-manaMint' : 'text-cursedRed'}>
-                      {purifiedRunes.length === 3 ? '🔓 UNLOCKED!' : '🔒 SEALED BY HEX'}
-                    </strong>
-                  </div>
-                </div>
-              )}
-
-              {/* Level 6: Stargate */}
-              {lesson.stageType === 'stargate' && (
-                <div className="flex flex-col items-center gap-3 w-full max-w-sm py-2">
-                  <div className="relative w-44 h-44 rounded-full flex items-center justify-center border-4 border-dashed border-[#8B5CF6]/40 p-2">
-                    {/* Ring 1 */}
-                    <div
-                      className={`absolute inset-2 rounded-full border-2 transition-all duration-1000 ${
-                        stargateRingsAligned
-                          ? 'border-[#5EEAD4] shadow-[0_0_20px_#5EEAD4] rotate-0'
-                          : 'border-white/20 rotate-45'
-                      }`}
-                    />
-                    {/* Ring 2 */}
-                    <div
-                      className={`absolute inset-5 rounded-full border-2 transition-all duration-1000 ${
-                        stargateRingsAligned
-                          ? 'border-[#F472B6] shadow-[0_0_20px_#F472B6] rotate-0'
-                          : 'border-white/20 -rotate-90'
-                      }`}
-                    />
-                    {/* Ring 3 (Inner Portal) */}
-                    <div
-                      className={`w-24 h-24 rounded-full flex items-center justify-center text-3xl transition-all duration-700 ${
-                        stargateFlux >= 200
-                          ? 'bg-gradient-to-tr from-[#5EEAD4] via-[#8B5CF6] to-[#F472B6] shadow-[0_0_35px_rgba(94,234,212,0.9)] scale-110 animate-spin'
-                          : 'bg-black/60 border border-white/20'
-                      }`}
-                    >
-                      {stargateFlux >= 200 ? '🌌' : '🪐'}
-                    </div>
-                  </div>
-
-                  {/* Flux Power Meter */}
-                  <div className="w-full space-y-1">
-                    <div className="flex justify-between text-xs font-code">
-                      <span className="text-[#5EEAD4]">Stargate Flux</span>
-                      <span className="font-bold text-[#F472B6]">{stargateFlux} / 200 MW</span>
-                    </div>
-                    <div className="w-full h-2.5 bg-black/50 rounded-full overflow-hidden border border-white/10">
-                      <div
-                        className="h-full bg-gradient-to-r from-[#5EEAD4] via-[#8B5CF6] to-[#F472B6] transition-all duration-500"
-                        style={{ width: `${Math.min(100, (stargateFlux / 200) * 100)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-[11px] font-code text-center text-white/80">
-                    Status: {stargateFlux >= 200 ? '🌌 WORMHOLE ACTIVE & STABLE' : '⚡ AWAITING POWER INJECTION'}
-                  </div>
-                </div>
-              )}
-
-              {/* Level 7: Chrono Matrix */}
-              {lesson.stageType === 'chrono' && (
-                <div className="flex flex-col items-center gap-3 w-full max-w-sm py-2">
-                  <div className="grid grid-cols-4 gap-2 w-full">
-                    {chronoCrystals.map((val, idx) => (
-                      <div
-                        key={idx}
-                        className={`p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-1 transition-all duration-500 ${
-                          val === idx + 1
-                            ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.5)] scale-105'
-                            : 'bg-indigo-950/60 border-indigo-500/40 text-indigo-200'
-                        }`}
-                      >
-                        <span className="text-2xl animate-bounce" style={{ animationDelay: `${idx * 0.15}s` }}>
-                          💎
-                        </span>
-                        <span className="font-pixel text-lg font-bold">#{val}</span>
-                        <span className="text-[9px] font-code opacity-60">idx [{idx}]</span>
-                      </div>
-                    ))}
-                  </div>
-
-                  <div className="w-full p-2.5 rounded-xl bg-night-950/70 border border-white/10 text-center text-xs">
-                    Timeline Vortex:{' '}
-                    <strong className={isVortexStabilized ? 'text-emerald-400' : 'text-amber-400'}>
-                      {isVortexStabilized ? '🌀 100% STABILIZED (NO PARADOX)' : '⚠️ CHRONO ANOMALY DETECTED'}
-                    </strong>
-                  </div>
-                </div>
-              )}
-
-              {/* Level 8: Boss Battle Arena */}
-              {lesson.stageType === 'boss' && (
-                <div className="flex flex-col items-center gap-3 w-full max-w-sm py-2">
-                  {/* Glitch Chimera Sprite */}
-                  <div className="relative flex flex-col items-center">
-                    <div
-                      className={`text-6xl transition-all duration-200 ${
-                        bossHitFlash ? 'scale-125 filter drop-shadow-[0_0_25px_#EF4444]' : 'animate-bounce'
-                      }`}
-                      style={{ animationDuration: '2s' }}
-                    >
-                      👾
-                    </div>
-                    <div className="font-pixel text-[11px] text-[#F472B6] font-bold mt-1">
-                      Glitch Chimera Overlord
-                    </div>
-                  </div>
-
-                  {/* Boss Health Bar */}
-                  <div className="w-full space-y-1">
-                    <div className="flex justify-between text-xs font-code">
-                      <span className="text-red-400">Boss HP</span>
-                      <span className="font-bold text-red-400">{bossHp} / 100 HP</span>
-                    </div>
-                    <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-red-500/40">
-                      <div
-                        className="h-full bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 transition-all duration-400"
-                        style={{ width: `${Math.max(0, bossHp)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Player Mana Shield */}
-                  <div className="w-full space-y-1">
-                    <div className="flex justify-between text-xs font-code">
-                      <span className="text-[#5EEAD4]">Player Mana Shield</span>
-                      <span className="font-bold text-[#5EEAD4]">{playerShield} / 100</span>
-                    </div>
-                    <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-cyan-500/40">
-                      <div
-                        className="h-full bg-gradient-to-r from-cyan-500 to-[#5EEAD4] transition-all duration-400"
-                        style={{ width: `${Math.min(100, playerShield)}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="text-[11px] font-code text-center">
-                    {bossHp <= 0 ? (
-                      <span className="text-emerald-400 font-bold">🏆 VICTORY! ARCHMAGE TITLE CONFERRED!</span>
-                    ) : (
-                      <span className="text-amber-300">⚔️ COMBAT ENGAGED: DEFEND & SMITE</span>
-                    )}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* Victory Next Quest Banner with Pointer Arrow */}
-            {questSuccess && (
-              <div className="mt-3 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-900/80 to-emerald-950/90 border-2 border-manaMint flex items-center justify-between animate-fadeIn shadow-mana">
-                <div className="flex items-center gap-2.5">
-                  <Trophy className="w-5 h-5 text-manaMint animate-bounce" />
-                  <div>
-                    <div className="text-xs font-fantasy font-bold text-manaMint">
-                      Quest Completed!
-                    </div>
-                    <div className="text-[10px] text-moonCream/80">
-                      You mastered {lesson.conceptName}.
-                    </div>
-                  </div>
-                </div>
-
-                {currentLessonId < CODEDEX_LESSONS.length && (
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-fantasy font-bold text-manaMint animate-pulse hidden sm:inline">
-                      Next Step 👉
-                    </span>
-                    <button
-                      onClick={handleNextQuest}
-                      className="px-4 py-2 rounded-xl bg-manaMint text-night-950 font-fantasy font-black text-xs shadow-md hover:bg-white transition-all flex items-center gap-1 shrink-0 animate-bounce"
-                    >
-                      <span>Next Quest</span>
-                      <ChevronRight className="w-4 h-4" />
-                    </button>
-                  </div>
-                )}
+            <div className="flex-1">
+              <div className="text-[10px] font-pixel text-amber-300 font-bold uppercase tracking-wider leading-none mb-1">
+                Mission Objective
               </div>
-            )}
+              <p className="text-xs sm:text-sm text-moonCream font-medium leading-relaxed">
+                {lesson.taskObjective}
+              </p>
+            </div>
           </div>
-        </section>
+        </div>
 
-        {/* RIGHT COLUMN: CODE EDITOR & OUTPUT (7 cols) */}
-        <section className="lg:col-span-7 space-y-4">
+        {/* Bottom luminous border line */}
+        <div className="h-[1px] w-full bg-gradient-to-r from-transparent via-magic/50 to-transparent" />
+      </div>
+
+      {/* ── MAIN WORKSPACE ── */}
+      <main className="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+        {/* ── LEFT: Code Editor (6 cols) ── */}
+        <section className="lg:col-span-6 space-y-4">
+
           {/* Quick Hint Card */}
-          {showHint && (
-            <div className="p-3 rounded-2xl bg-amber-950/60 border border-runeAmber/40 text-xs text-moonCream/95 animate-fadeIn flex items-start gap-2.5 shadow-lg">
-              <Lightbulb className="w-4 h-4 text-runeAmber shrink-0 mt-0.5" />
-              <div className="flex-1">
-                <strong className="text-runeAmber">Hint:</strong> {lesson.hint}
-              </div>
-            </div>
-          )}
-
-          {/* Solution Banner */}
-          {showSolution && (
-            <div className="p-3.5 rounded-2xl bg-purple-950/80 border border-spellPink/50 text-xs space-y-2 animate-fadeIn shadow-xl">
-              <div className="font-fantasy font-bold text-spellPink flex items-center justify-between">
-                <span>📜 Solution Code</span>
-                <button
-                  onClick={() => {
-                    sound.playClick();
-                    setCode(lesson.solutionCode);
-                  }}
-                  className="text-[10px] px-2.5 py-1 rounded-lg bg-spellPink text-night-950 font-bold hover:bg-white transition-colors cursor-pointer"
-                >
-                  Insert to Editor
-                </button>
-              </div>
-              <pre className="p-2.5 rounded-xl bg-night-950 font-code text-xs text-manaMint overflow-x-auto">
-                <code>{lesson.solutionCode}</code>
-              </pre>
-            </div>
-          )}
-
-          {errorPointer && (
-            <div className="p-3.5 rounded-2xl bg-red-950/90 border-2 border-cursedRed text-xs shadow-lg animate-shake flex items-start gap-3">
-              <div className="p-1.5 rounded-xl bg-cursedRed/20 text-cursedRed shrink-0 mt-0.5">
-                <AlertTriangle className="w-4 h-4" />
-              </div>
-              <div className="flex-1 space-y-1">
-                <div className="flex items-center gap-2">
-                  <span className="font-fantasy font-bold text-white bg-cursedRed px-2 py-0.5 rounded">
-                    Line {errorPointer.lineIndex + 1}
-                  </span>
-                  <span className="text-spellPink font-bold text-xs">
-                    {errorPointer.message}
-                  </span>
+          <AnimatePresence>
+            {showHint && (
+              <motion.div
+                initial={{ opacity: 0, y: -8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -8 }}
+                className="p-3 rounded-2xl bg-amber-950/60 border border-runeAmber/40 text-xs text-moonCream/95 flex items-start gap-2.5 shadow-lg"
+              >
+                <Lightbulb className="w-4 h-4 text-runeAmber shrink-0 mt-0.5" />
+                <div className="flex-1">
+                  <strong className="text-runeAmber">Hint:</strong> {lesson.hint}
                 </div>
-                <div className="text-moonCream font-medium flex items-center gap-1.5 text-[11px] pt-0.5">
-                  <span className="text-runeAmber font-bold">👉 How to Fix:</span>
-                  <span>{errorPointer.suggestion}</span>
-                </div>
-              </div>
-            </div>
-          )}
+              </motion.div>
+            )}
+          </AnimatePresence>
 
-          {/* THE TEXT EDITOR ("type code here") */}
+          {/* Error Banner */}
+          <AnimatePresence>
+            {errorPointer && (
+              <motion.div
+                initial={{ x: 0 }}
+                animate={{ x: [0, -8, 8, -8, 8, 0] }}
+                transition={{ duration: 0.4 }}
+                className="p-3.5 rounded-2xl bg-red-950/90 border-2 border-cursedRed text-xs shadow-lg flex items-start gap-3"
+              >
+                <div className="p-1.5 rounded-xl bg-cursedRed/20 text-cursedRed shrink-0 mt-0.5">
+                  <AlertTriangle className="w-4 h-4" />
+                </div>
+                <div className="flex-1 space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="font-fantasy font-bold text-white bg-cursedRed px-2 py-0.5 rounded">
+                      Line {errorPointer.lineIndex + 1}
+                    </span>
+                    <span className="text-spellPink font-bold text-xs">
+                      {errorPointer.message}
+                    </span>
+                  </div>
+                  <div className="text-moonCream font-medium flex items-center gap-1.5 text-[11px] pt-0.5">
+                    <span className="text-runeAmber font-bold">👉 How to Fix:</span>
+                    <span>{errorPointer.suggestion}</span>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Code Editor Panel */}
           <div className="rounded-3xl bg-[#090610] border-2 border-magic/50 shadow-2xl overflow-hidden flex flex-col relative">
             {/* Tab header */}
             <div className="flex items-center justify-between px-4 py-2.5 bg-[#140e24] border-b border-purple-900/40 text-xs">
               <div className="flex items-center gap-2">
                 <Code2 className="w-4 h-4 text-spellPink" />
                 <span className="font-code font-bold text-moonCream">main.py</span>
-                {/* The prominent "type code here" quote */}
-                <span className="text-[11px] font-code font-bold text-spellPink bg-spellPink/10 px-2 py-0.5 rounded border border-spellPink/30 ml-2">
-                  "type code here"
-                </span>
               </div>
 
               <div className="flex items-center gap-2">
@@ -1319,11 +915,11 @@ export const CodedexApp: React.FC = () => {
               </div>
             </div>
 
-            {/* Editable Text Area with Line Numbers & Contextual Pointer */}
-            <div className="flex relative min-h-[190px]">
+            {/* Editable Text Area with Line Numbers */}
+            <div className="flex relative min-h-[220px]">
               {/* Line Numbers */}
               <div className="w-10 bg-[#0d0918] border-r border-white/5 p-3 select-none text-right font-code text-xs text-moonCream/30 leading-[20px]">
-                {Array.from({ length: Math.max(8, code.split('\n').length) }).map((_, i) => {
+                {Array.from({ length: Math.max(10, code.split('\n').length) }).map((_, i) => {
                   const isErr = errorPointer?.lineIndex === i;
                   const isActive = activeLine === i;
 
@@ -1354,8 +950,8 @@ export const CodedexApp: React.FC = () => {
                     if (errorPointer) setErrorPointer(null);
                   }}
                   spellCheck={false}
-                  placeholder={`# 🪄 "type code here" — Inscribe your instructions\n# Follow the tasks on the left!`}
-                  className="w-full h-full bg-transparent text-manaMint font-code text-xs p-3 focus:outline-none resize-none leading-[20px] selection:bg-magic selection:text-white"
+                  placeholder={`# 🪄 Inscribe your spell here\n# Follow the tasks on the left!`}
+                  className="w-full h-full bg-transparent text-manaMint font-code text-xs p-3 focus:outline-none resize-none leading-[20px] selection:bg-magic selection:text-white min-h-[220px]"
                 />
 
                 {/* CONTEXTUAL ARROW: Points inside editor ONLY when editor is empty */}
@@ -1370,17 +966,19 @@ export const CodedexApp: React.FC = () => {
               </div>
             </div>
 
-            {/* Run Code / Cast Spell Bar */}
-            <div className="p-3 bg-[#140e24] border-t border-purple-900/40 flex items-center justify-between">
+            {/* Cast Spell Footer Bar */}
+            <div className="p-3 bg-[#140e24] border-t border-purple-900/40 flex flex-wrap items-center justify-between gap-2.5">
               <div className="flex items-center gap-3">
-                <button
+                <motion.button
                   onClick={handleRunCode}
                   disabled={isExecuting}
-                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-magic via-spellPink to-manaMint text-night-950 font-fantasy font-black text-xs shadow-magic hover:opacity-95 transition-all hover:scale-105 active:scale-95 disabled:opacity-50"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  className="flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-magic via-spellPink to-manaMint text-night-950 font-fantasy font-black text-xs shadow-magic hover:opacity-95 transition-opacity disabled:opacity-50 cursor-pointer"
                 >
                   <Play className="w-4 h-4 fill-current" />
                   <span>{isExecuting ? 'Running Magic...' : '▶ Cast Spell (Run Code)'}</span>
-                </button>
+                </motion.button>
 
                 {/* CONTEXTUAL ARROW: Points to Cast Spell ONLY when ready to run */}
                 {isReadyToRun && (
@@ -1391,49 +989,676 @@ export const CodedexApp: React.FC = () => {
                 )}
               </div>
 
-              <button
-                onClick={resetStage}
-                disabled={isExecuting}
-                className="flex items-center gap-1 px-3 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-moonCream/80 text-xs border border-white/10"
-              >
-                <RotateCcw className="w-3.5 h-3.5" />
-                <span>Reset Stage</span>
-              </button>
+              {/* Utility Tools Bar: How to Play, Solution, Reset, Terminal */}
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setIsTutorialOpen(true);
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-magic/20 hover:bg-magic/35 border border-magic/40 text-xs text-spellPink font-fantasy font-bold transition-all cursor-pointer shadow-sm"
+                  title="How to play this quest"
+                >
+                  <HelpCircle className="w-3.5 h-3.5" />
+                  <span>How to Play</span>
+                </button>
+
+                <button
+                  onClick={() => {
+                    sound.playClick();
+                    setShowSolution(!showSolution);
+                  }}
+                  className={cn(
+                    'flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-fantasy font-bold transition-all cursor-pointer',
+                    showSolution
+                      ? 'bg-spellPink/20 border-spellPink/50 text-spellPink'
+                      : 'bg-white/5 hover:bg-white/10 border-white/10 text-moonCream/80'
+                  )}
+                  title="Toggle Solution Code"
+                >
+                  {showSolution ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
+                  <span>{showSolution ? 'Hide Solution' : 'Solution'}</span>
+                </button>
+
+                <button
+                  onClick={resetStage}
+                  disabled={isExecuting}
+                  className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl bg-white/5 hover:bg-white/10 text-moonCream/80 text-xs border border-white/10 cursor-pointer"
+                  title="Reset Stage Simulation"
+                >
+                  <RotateCcw className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Reset</span>
+                </button>
+
+                {/* Terminal Toggle */}
+                <button
+                  onClick={() => setShowTerminal((v) => !v)}
+                  className={cn(
+                    'flex items-center gap-1 px-3 py-1.5 rounded-xl text-xs border transition-colors cursor-pointer',
+                    showTerminal
+                      ? 'bg-manaMint/20 border-manaMint/40 text-manaMint'
+                      : 'bg-white/5 hover:bg-white/10 border-white/10 text-moonCream/60'
+                  )}
+                  title="Toggle Console Output Terminal"
+                >
+                  <Terminal className="w-3.5 h-3.5" />
+                  <span className="text-[11px] font-code hidden sm:inline">Console</span>
+                  {showTerminal ? <ChevronDown className="w-3 h-3" /> : <ChevronUp className="w-3 h-3" />}
+                </button>
+              </div>
             </div>
           </div>
 
-          {/* TERMINAL CONSOLE OUTPUT */}
-          <div className="rounded-3xl bg-[#090610] border border-white/10 overflow-hidden shadow-lg">
-            <div className="px-4 py-2 bg-[#120d1e] border-b border-white/5 flex items-center justify-between text-xs text-moonCream/50 font-code">
-              <span className="flex items-center gap-1.5">
-                <Terminal className="w-3.5 h-3.5 text-manaMint" /> Console Output
+          {/* Solution Banner – collapsible downward drawer */}
+          <AnimatePresence>
+            {showSolution && (
+              <motion.div
+                initial={{ opacity: 0, height: 0, y: -6 }}
+                animate={{ opacity: 1, height: 'auto', y: 0 }}
+                exit={{ opacity: 0, height: 0, y: -6 }}
+                transition={{ duration: 0.2 }}
+                className="overflow-hidden"
+              >
+                <div className="p-3.5 rounded-2xl bg-purple-950/80 border border-spellPink/50 text-xs space-y-2 shadow-xl">
+                  <div className="font-fantasy font-bold text-spellPink flex items-center justify-between">
+                    <span>📜 Solution Code</span>
+                    <button
+                      onClick={() => {
+                        sound.playClick();
+                        setCode(lesson.solutionCode);
+                      }}
+                      className="text-[10px] px-2.5 py-1 rounded-lg bg-spellPink text-night-950 font-bold hover:bg-white transition-colors cursor-pointer"
+                    >
+                      Insert to Editor
+                    </button>
+                  </div>
+                  <pre className="p-2.5 rounded-xl bg-[#090610] font-code text-xs text-manaMint overflow-x-auto">
+                    <code>{lesson.solutionCode}</code>
+                  </pre>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Terminal — collapsible */}
+          <AnimatePresence>
+            {showTerminal && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+                className="overflow-hidden rounded-3xl bg-[#090610] border border-white/10 shadow-lg"
+              >
+                <div className="px-4 py-2 bg-[#120d1e] border-b border-white/5 flex items-center gap-1.5 text-xs text-moonCream/50 font-code">
+                  <Terminal className="w-3.5 h-3.5 text-manaMint" />
+                  <span>Console Output</span>
+                </div>
+
+                <div className="p-3 font-code text-xs space-y-1 max-h-40 overflow-y-auto leading-relaxed">
+                  {terminalLogs.map((log, i) => (
+                    <div
+                      key={i}
+                      className={
+                        log.includes('❌') || log.includes('Error')
+                          ? 'text-cursedRed font-semibold'
+                          : log.includes('🎉')
+                          ? 'text-manaMint font-bold'
+                          : log.startsWith('$')
+                          ? 'text-moonCream/40'
+                          : 'text-manaMint/90'
+                      }
+                    >
+                      {log}
+                    </div>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </section>
+
+        {/* ── RIGHT: Magic Stage (6 cols - Expanded) ── */}
+        <section className="lg:col-span-6">
+          <div className="rounded-3xl bg-[#140e24] border border-purple-900/40 shadow-2xl min-h-[580px] flex flex-col overflow-hidden">
+            {/* Stage Header */}
+            <div className="px-5 py-3.5 border-b border-white/10 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-3xl filter drop-shadow-[0_0_12px_rgba(139,92,246,0.8)]">
+                  {currentStageInfo.emoji}
+                </span>
+                <span className="font-fantasy font-black text-lg sm:text-xl text-moonCream tracking-wide">
+                  {currentStageInfo.name}
+                </span>
+              </div>
+              <span className="text-[11px] font-pixel text-manaMint bg-manaMint/10 px-2.5 py-1 rounded-md border border-manaMint/20">
+                LIVE SANDBOX
               </span>
-              <span>Python 3.12 (SpellScript Engine)</span>
             </div>
 
-            <div className="p-3 font-code text-xs space-y-1 max-h-36 overflow-y-auto leading-relaxed">
-              {terminalLogs.map((log, i) => (
-                <div
-                  key={i}
-                  className={
-                    log.includes('❌') || log.includes('Error')
-                      ? 'text-cursedRed font-semibold'
-                      : log.includes('🎉')
-                      ? 'text-manaMint font-bold'
-                      : log.startsWith('$')
-                      ? 'text-moonCream/40'
-                      : 'text-manaMint/90'
-                  }
-                >
-                  {log}
-                </div>
-              ))}
+            {/* Stage World Canvas */}
+            <div className="flex-1 flex items-center justify-center p-6">
+              <div className="flex flex-col items-center justify-center gap-4 w-full">
+
+                {/* Level 1: Dragon 5x5 Grid */}
+                {lesson.stageType === 'dragon' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full"
+                  >
+                    <div className="grid grid-cols-5 gap-2.5 p-4 rounded-2xl bg-[#090610] border border-magic/40 w-full max-w-sm aspect-square shadow-2xl">
+                      {Array.from({ length: 25 }).map((_, idx) => {
+                        const x = idx % 5;
+                        const y = Math.floor(idx / 5);
+                        const isDragon = dragon.x === x && dragon.y === y;
+                        const isTarget = x === 2 && y === 2;
+                        const isRock = x === 1 && y === 1;
+                        const isErrorTile = errorPointer?.tileCoords?.x === x && errorPointer?.tileCoords?.y === y;
+
+                        return (
+                          <div
+                            key={idx}
+                            className={cn(
+                              'relative rounded-xl border flex items-center justify-center transition-all',
+                              isErrorTile
+                                ? 'bg-red-950/80 border-cursedRed ring-2 ring-cursedRed shadow-[0_0_15px_rgba(255,89,100,0.8)]'
+                                : isDragon
+                                ? 'bg-magic/35 border-magic shadow-magic scale-105'
+                                : isTarget
+                                ? 'bg-amber-500/20 border-amber-400/80 animate-pulse'
+                                : isRock
+                                ? 'bg-red-950/50 border-red-900/50'
+                                : 'bg-white/5 border-white/5'
+                            )}
+                          >
+                            {/* DYNAMIC ERROR ARROW */}
+                            {isErrorTile && (
+                              <div className="absolute -top-7 z-30 flex flex-col items-center animate-bounce pointer-events-none">
+                                <span className="text-[9px] font-bold text-white bg-cursedRed px-1.5 py-0.5 rounded shadow">
+                                  Blocked!
+                                </span>
+                                <ArrowDown className="w-3.5 h-3.5 text-cursedRed stroke-[3]" />
+                              </div>
+                            )}
+
+                            {isTarget && (
+                              <span className="text-2xl filter drop-shadow-[0_0_8px_rgba(255,179,71,0.9)] animate-bounce">
+                                💎
+                              </span>
+                            )}
+
+                            {isRock && <span className="text-lg">🪨</span>}
+
+                            {isDragon && (
+                              <div
+                                className={cn(
+                                  'text-2xl transition-transform duration-300',
+                                  dragon.direction === 'RIGHT'
+                                    ? 'rotate-0'
+                                    : dragon.direction === 'DOWN'
+                                    ? 'rotate-90'
+                                    : dragon.direction === 'LEFT'
+                                    ? 'rotate-180 -scale-y-100'
+                                    : '-rotate-90'
+                                )}
+                              >
+                                🐲
+                              </div>
+                            )}
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="text-xs text-moonCream/80 flex items-center gap-3 font-code">
+                      <span>Pos: ({dragon.x}, {dragon.y})</span>
+                      <span>Facing: {dragon.direction}</span>
+                      <span className="text-runeAmber font-bold">
+                        {collectedCrystal ? 'Crystal Collected 💎' : '0/1 Crystal'}
+                      </span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 2: Potion Cauldron */}
+                {lesson.stageType === 'potion' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-6 w-full max-w-md py-4"
+                  >
+                    <div className="grid grid-cols-2 gap-4 w-full">
+                      <div className="p-4 rounded-2xl bg-[#0e0a19]/90 border border-spellPink/50 text-center shadow-lg">
+                        <span className="text-3xl">🍾</span>
+                        <div className="text-xs font-code font-bold text-moonCream mt-1.5">mana_flask</div>
+                        <div className="text-base font-bold text-spellPink font-code mt-0.5">
+                          {potionVars['mana_flask'] !== undefined ? potionVars['mana_flask'] : 'empty'}
+                        </div>
+                      </div>
+
+                      <div className="p-4 rounded-2xl bg-[#0e0a19]/90 border border-manaMint/50 text-center shadow-lg">
+                        <span className="text-3xl">✨</span>
+                        <div className="text-xs font-code font-bold text-moonCream mt-1.5">star_dew</div>
+                        <div className="text-base font-bold text-manaMint font-code mt-0.5">
+                          {potionVars['star_dew'] !== undefined ? potionVars['star_dew'] : 'empty'}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="relative w-48 h-36 rounded-b-[4.5rem] bg-gradient-to-b from-[#35254a] to-[#160d21] border-4 border-[#523b72] flex items-center justify-center shadow-2xl">
+                      <div
+                        className={cn(
+                          'w-36 h-20 rounded-b-[4rem] transition-all duration-700 flex items-center justify-center',
+                          isBrewed
+                            ? 'bg-gradient-to-r from-spellPink via-magic to-manaMint shadow-[0_0_30px_rgba(243,169,212,0.9)]'
+                            : 'bg-purple-950/50'
+                        )}
+                      >
+                        <span className="text-3xl animate-bounce">{isBrewed ? '🌟' : '🫧'}</span>
+                      </div>
+                    </div>
+
+                    <div className="text-sm font-code text-moonCream font-medium bg-[#0e0a19]/70 px-4 py-1.5 rounded-xl border border-white/10">
+                      Cauldron: {isBrewed ? 'Elixir Transmuted! 🎉' : 'Awaiting ingredients...'}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 3: Garden */}
+                {lesson.stageType === 'garden' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full max-w-sm"
+                  >
+                    <div className="grid grid-cols-3 gap-2.5 p-3 rounded-2xl bg-[#0a1813] border border-manaMint/40 shadow-inner w-full">
+                      {Array.from({ length: 6 }).map((_, idx) => {
+                        const isBloomed = idx < bloomedFlowers;
+
+                        return (
+                          <motion.div
+                            key={idx}
+                            initial={{ scale: 0.8, opacity: 0.4 }}
+                            animate={isBloomed ? { scale: 1.05, opacity: 1 } : { scale: 1, opacity: 0.4 }}
+                            transition={{ delay: idx * 0.05 }}
+                            className={cn(
+                              'aspect-square rounded-xl flex flex-col items-center justify-center p-2 transition-all duration-300',
+                              isBloomed
+                                ? 'bg-manaMint/25 border border-manaMint shadow-mana'
+                                : 'bg-[#0e0a19]/60 border border-white/5'
+                            )}
+                          >
+                            <span className="text-3xl">{isBloomed ? '🌸' : '🌱'}</span>
+                            <span className="text-[10px] font-bold text-manaMint mt-1">
+                              {isBloomed ? `Bloom ${idx + 1}` : 'Seed'}
+                            </span>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="text-xs font-code font-bold text-manaMint">
+                      {bloomedFlowers} / 6 Flowers Bloomed
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 4: Bridge */}
+                {lesson.stageType === 'bridge' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex items-center justify-between gap-1 w-full max-w-sm py-4"
+                  >
+                    <div className="w-16 h-20 rounded-xl bg-[#2a1d47] border border-magic flex flex-col items-center justify-center text-xs">
+                      <span className="text-2xl">🧙‍♂️</span>
+                      <span className="text-[9px] text-white/60">Cliff</span>
+                    </div>
+
+                    {Array.from({ length: 4 }).map((_, i) => (
+                      <div
+                        key={i}
+                        className={cn(
+                          'flex-1 h-12 rounded-lg border flex items-center justify-center text-xs transition-all',
+                          i < bridgeTiles
+                            ? 'bg-gradient-to-t from-magic to-manaMint border-manaMint shadow-mana text-night-950 font-bold scale-105'
+                            : 'bg-white/5 border-dashed border-white/10 opacity-30'
+                        )}
+                      >
+                        {i < bridgeTiles ? '✨' : ''}
+                      </div>
+                    ))}
+
+                    <div className="w-16 h-20 rounded-xl bg-[#2a1d47] border border-magic flex flex-col items-center justify-center text-xs">
+                      <span className="text-2xl">🏰</span>
+                      <span className="text-[9px] text-white/60">Tower</span>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 5: Curse */}
+                {lesson.stageType === 'curse' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full max-w-sm py-2"
+                  >
+                    <div className="flex items-center justify-center gap-3">
+                      {[
+                        { id: 1, sym: 'ᚠ' },
+                        { id: 2, sym: 'ᚢ' },
+                        { id: 3, sym: 'ᚦ' },
+                      ].map((r) => {
+                        const isClean = purifiedRunes.includes(r.id);
+
+                        return (
+                          <div
+                            key={r.id}
+                            className={cn(
+                              'w-16 h-20 rounded-xl border-2 flex flex-col items-center justify-center transition-all',
+                              isClean
+                                ? 'bg-manaMint/20 border-manaMint text-manaMint shadow-mana scale-105'
+                                : 'bg-red-950/40 border-cursedRed text-cursedRed animate-pulse'
+                            )}
+                          >
+                            <span className="text-2xl font-bold">{r.sym}</span>
+                            <span className="text-[10px] mt-1 font-code">#{r.id}</span>
+                            <span className="text-[8px] uppercase font-bold">
+                              {isClean ? 'Clean' : 'Cursed'}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+
+                    <div className="p-2.5 rounded-xl bg-[#0e0a19]/70 border border-white/10 text-center w-full text-xs">
+                      Dungeon Vault:{' '}
+                      <strong className={purifiedRunes.length === 3 ? 'text-manaMint' : 'text-cursedRed'}>
+                        {purifiedRunes.length === 3 ? '🔓 UNLOCKED!' : '🔒 SEALED BY HEX'}
+                      </strong>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 6: Stargate */}
+                {lesson.stageType === 'stargate' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full max-w-sm py-2"
+                  >
+                    <div className="relative w-44 h-44 rounded-full flex items-center justify-center border-4 border-dashed border-[#8B5CF6]/40 p-2">
+                      {/* Ring 1 */}
+                      <div
+                        className={cn(
+                          'absolute inset-2 rounded-full border-2 transition-all duration-1000',
+                          stargateRingsAligned
+                            ? 'border-[#5EEAD4] shadow-[0_0_20px_#5EEAD4] rotate-0'
+                            : 'border-white/20 rotate-45'
+                        )}
+                      />
+                      {/* Ring 2 */}
+                      <div
+                        className={cn(
+                          'absolute inset-5 rounded-full border-2 transition-all duration-1000',
+                          stargateRingsAligned
+                            ? 'border-[#F472B6] shadow-[0_0_20px_#F472B6] rotate-0'
+                            : 'border-white/20 -rotate-90'
+                        )}
+                      />
+                      {/* Ring 3 (Inner Portal) */}
+                      <div
+                        className={cn(
+                          'w-24 h-24 rounded-full flex items-center justify-center text-3xl transition-all duration-700',
+                          stargateFlux >= 200
+                            ? 'bg-gradient-to-tr from-[#5EEAD4] via-[#8B5CF6] to-[#F472B6] shadow-[0_0_35px_rgba(94,234,212,0.9)] scale-110 animate-spin'
+                            : 'bg-black/60 border border-white/20'
+                        )}
+                      >
+                        {stargateFlux >= 200 ? '🌌' : '🪐'}
+                      </div>
+                    </div>
+
+                    {/* Flux Power Meter */}
+                    <div className="w-full space-y-1">
+                      <div className="flex justify-between text-xs font-code">
+                        <span className="text-[#5EEAD4]">Stargate Flux</span>
+                        <span className="font-bold text-[#F472B6]">{stargateFlux} / 200 MW</span>
+                      </div>
+                      <div className="w-full h-2.5 bg-black/50 rounded-full overflow-hidden border border-white/10">
+                        <div
+                          className="h-full bg-gradient-to-r from-[#5EEAD4] via-[#8B5CF6] to-[#F472B6] transition-all duration-500"
+                          style={{ width: `${Math.min(100, (stargateFlux / 200) * 100)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] font-code text-center text-white/80">
+                      Status: {stargateFlux >= 200 ? '🌌 WORMHOLE ACTIVE & STABLE' : '⚡ AWAITING POWER INJECTION'}
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 7: Chrono Matrix */}
+                {lesson.stageType === 'chrono' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full max-w-sm py-2"
+                  >
+                    <div className="grid grid-cols-4 gap-2 w-full">
+                      {chronoCrystals.map((val, idx) => (
+                        <div
+                          key={idx}
+                          className={cn(
+                            'p-3 rounded-2xl border-2 flex flex-col items-center justify-center gap-1 transition-all duration-500',
+                            val === idx + 1
+                              ? 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_15px_rgba(52,211,153,0.5)] scale-105'
+                              : 'bg-indigo-950/60 border-indigo-500/40 text-indigo-200'
+                          )}
+                        >
+                          <span className="text-2xl animate-bounce" style={{ animationDelay: `${idx * 0.15}s` }}>
+                            💎
+                          </span>
+                          <span className="font-pixel text-lg font-bold">#{val}</span>
+                          <span className="text-[9px] font-code opacity-60">idx [{idx}]</span>
+                        </div>
+                      ))}
+                    </div>
+
+                    <div className="w-full p-2.5 rounded-xl bg-[#0e0a19]/70 border border-white/10 text-center text-xs">
+                      Timeline Vortex:{' '}
+                      <strong className={isVortexStabilized ? 'text-emerald-400' : 'text-amber-400'}>
+                        {isVortexStabilized ? '🌀 100% STABILIZED (NO PARADOX)' : '⚠️ CHRONO ANOMALY DETECTED'}
+                      </strong>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Level 8: Boss Battle Arena */}
+                {lesson.stageType === 'boss' && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    className="flex flex-col items-center gap-3 w-full max-w-sm py-2"
+                  >
+                    {/* Glitch Chimera Sprite */}
+                    <div className="relative flex flex-col items-center">
+                      <div
+                        className={cn(
+                          'text-6xl transition-all duration-200',
+                          bossHitFlash ? 'scale-125 filter drop-shadow-[0_0_25px_#EF4444]' : 'animate-bounce'
+                        )}
+                        style={{ animationDuration: '2s' }}
+                      >
+                        👾
+                      </div>
+                      <div className="font-pixel text-[11px] text-[#F472B6] font-bold mt-1">
+                        Glitch Chimera Overlord
+                      </div>
+                    </div>
+
+                    {/* Boss Health Bar */}
+                    <div className="w-full space-y-1">
+                      <div className="flex justify-between text-xs font-code">
+                        <span className="text-red-400">Boss HP</span>
+                        <span className="font-bold text-red-400">{bossHp} / 100 HP</span>
+                      </div>
+                      <div className="w-full h-3 bg-black/60 rounded-full overflow-hidden border border-red-500/40">
+                        <div
+                          className="h-full bg-gradient-to-r from-red-600 via-amber-500 to-emerald-500 transition-all duration-400"
+                          style={{ width: `${Math.max(0, bossHp)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Player Mana Shield */}
+                    <div className="w-full space-y-1">
+                      <div className="flex justify-between text-xs font-code">
+                        <span className="text-[#5EEAD4]">Player Mana Shield</span>
+                        <span className="font-bold text-[#5EEAD4]">{playerShield} / 100</span>
+                      </div>
+                      <div className="w-full h-2 bg-black/60 rounded-full overflow-hidden border border-cyan-500/40">
+                        <div
+                          className="h-full bg-gradient-to-r from-cyan-500 to-[#5EEAD4] transition-all duration-400"
+                          style={{ width: `${Math.min(100, playerShield)}%` }}
+                        />
+                      </div>
+                    </div>
+
+                    <div className="text-[11px] font-code text-center">
+                      {bossHp <= 0 ? (
+                        <span className="text-emerald-400 font-bold">🏆 VICTORY! ARCHMAGE TITLE CONFERRED!</span>
+                      ) : (
+                        <span className="text-amber-300">⚔️ COMBAT ENGAGED: DEFEND & SMITE</span>
+                      )}
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </div>
+
+            {/* Quest Success Banner */}
+            <AnimatePresence>
+              {questSuccess && (
+                <motion.div
+                  initial={{ y: 40, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  exit={{ y: 40, opacity: 0 }}
+                  transition={{ type: 'spring', damping: 20, stiffness: 200 }}
+                  className="mx-4 mb-4 p-3.5 rounded-2xl bg-gradient-to-r from-emerald-950/90 via-teal-900/80 to-emerald-950/90 border-2 border-manaMint flex items-center justify-between shadow-mana"
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Trophy className="w-5 h-5 text-manaMint animate-bounce" />
+                    <div>
+                      <div className="text-xs font-fantasy font-bold text-manaMint">
+                        Quest Completed!
+                      </div>
+                      <div className="text-[10px] text-moonCream/80">
+                        You mastered {lesson.conceptName}.
+                      </div>
+                    </div>
+                  </div>
+
+                  {currentLessonId < CODEDEX_LESSONS.length && (
+                    <button
+                      onClick={handleNextQuest}
+                      className="px-4 py-2 rounded-xl bg-manaMint text-night-950 font-fantasy font-black text-xs shadow-md hover:bg-white transition-all flex items-center gap-1 shrink-0 animate-bounce cursor-pointer"
+                    >
+                      <span>Next Quest</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </button>
+                  )}
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
         </section>
       </main>
 
-      {/* 4. TUTORIAL POPUP MODAL (Clean, Informative, Dismissible) */}
+      {/* ── CHAPTER DRAWER (slides from left) ── */}
+      <AnimatePresence>
+        {isChapterDrawerOpen && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 bg-black/60 backdrop-blur-sm z-40"
+              onClick={() => setIsChapterDrawerOpen(false)}
+            />
+            <motion.aside
+              initial={{ x: '-100%' }}
+              animate={{ x: 0 }}
+              exit={{ x: '-100%' }}
+              transition={{ duration: 0.22, ease: 'easeOut' }}
+              className="fixed left-0 top-0 bottom-0 w-80 bg-[#130d22] border-r border-magic/30 z-50 flex flex-col shadow-2xl"
+            >
+              <div className="flex items-center justify-between p-4 border-b border-white/10">
+                <h2 className="font-fantasy font-bold text-moonCream flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-spellPink" /> Chapters
+                </h2>
+                <button
+                  onClick={() => setIsChapterDrawerOpen(false)}
+                  className="p-1 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5 text-white/60 hover:text-white" />
+                </button>
+              </div>
+
+              <div className="flex-1 overflow-y-auto p-3 space-y-2">
+                {CODEDEX_LESSONS.map((l) => {
+                  const isCurrent = l.id === currentLessonId;
+                  const isDone = completedLessons.includes(l.id);
+
+                  return (
+                    <button
+                      key={l.id}
+                      onClick={() => {
+                        sound.playClick();
+                        setCurrentLessonId(l.id);
+                        setIsChapterDrawerOpen(false);
+                      }}
+                      className={cn(
+                        'w-full text-left p-3 rounded-xl flex items-center gap-3 transition-transform duration-150 active:scale-[0.98] cursor-pointer',
+                        isCurrent ? 'bg-magic/25 border border-magic/50 shadow-sm' : 'hover:bg-white/5'
+                      )}
+                    >
+                      <span
+                        className={cn(
+                          'w-7 h-7 rounded-lg flex items-center justify-center text-xs font-pixel shrink-0',
+                          isCurrent
+                            ? 'bg-magic text-white'
+                            : isDone
+                            ? 'bg-manaMint/20 text-manaMint'
+                            : 'bg-white/10 text-white/50'
+                        )}
+                      >
+                        {isDone && !isCurrent ? '✓' : l.id}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <div
+                          className={cn(
+                            'text-sm font-fantasy font-bold truncate',
+                            isCurrent ? 'text-moonCream' : 'text-moonCream/80'
+                          )}
+                        >
+                          {l.title}
+                        </div>
+                        <div className="text-[10px] text-moonCream/40 font-code truncate">{l.chapter}</div>
+                      </div>
+                      {isCurrent && <ChevronRight className="w-4 h-4 text-magic shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.aside>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* ── TUTORIAL POPUP MODAL ── */}
       {isTutorialOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md animate-fadeIn">
           <div className="w-full max-w-2xl bg-[#151026] border-2 border-magic/50 rounded-3xl shadow-2xl p-6 sm:p-8 space-y-5 max-h-[90vh] overflow-y-auto relative text-moonCream">
@@ -1525,22 +1750,22 @@ export const CodedexApp: React.FC = () => {
                     <div
                       key={task.id}
                       className={
-                        "p-2.5 rounded-xl border text-xs flex items-start gap-2.5 transition-all " +
+                        'p-2.5 rounded-xl border text-xs flex items-start gap-2.5 transition-all ' +
                         (typed
-                          ? "bg-emerald-950/40 border-manaMint/40 text-moonCream"
-                          : "bg-night-950/60 border-white/10 text-moonCream/70")
+                          ? 'bg-emerald-950/40 border-manaMint/40 text-moonCream'
+                          : 'bg-[#0e0a19]/60 border-white/10 text-moonCream/70')
                       }
                     >
                       <div
                         className={
-                          "w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold " +
-                          (typed ? "bg-manaMint text-night-950" : "border border-white/30 text-white/40")
+                          'w-4 h-4 rounded-full flex items-center justify-center shrink-0 mt-0.5 text-[10px] font-bold ' +
+                          (typed ? 'bg-manaMint text-night-950' : 'border border-white/30 text-white/40')
                         }
                       >
-                        {typed ? "✓" : idx + 1}
+                        {typed ? '✓' : idx + 1}
                       </div>
                       <div className="flex-1">
-                        <span className={typed ? "text-manaMint font-semibold" : ""}>
+                        <span className={typed ? 'text-manaMint font-semibold' : ''}>
                           {task.description}
                         </span>
                         <div className="text-[10px] text-magic-light font-code mt-0.5">
