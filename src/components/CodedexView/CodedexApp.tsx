@@ -84,7 +84,7 @@ export const CodedexApp: React.FC = () => {
   const [activeLine, setActiveLine] = useState<number | null>(null);
   const [errorPointer, setErrorPointer] = useState<ErrorPointer | null>(null);
   const [terminalLogs, setTerminalLogs] = useState<string[]>([
-    '$ spellscript init',
+    '$ storicode init',
     '> Enchanted environment initialized.',
     '> Follow instructions on the left, type code, and press "Cast Spell".',
   ]);
@@ -143,7 +143,7 @@ export const CodedexApp: React.FC = () => {
     setErrorPointer(null);
     resetStage();
     setTerminalLogs([
-      `$ spellscript load "${lesson.title}"`,
+      `$ storicode load "${lesson.title}"`,
       `> Loaded ${lesson.chapter}.`,
       '> Read the instructions on the left and type code in the editor!',
     ]);
@@ -711,7 +711,7 @@ export const CodedexApp: React.FC = () => {
               🪄
             </div>
             <div className="font-fantasy font-black text-base text-moonCream tracking-wider flex items-center gap-1.5 leading-tight group-hover:text-spellPink transition-colors">
-              SpellScript <Sparkles className="w-3.5 h-3.5 text-spellPink" />
+              Storicode <Sparkles className="w-3.5 h-3.5 text-spellPink" />
             </div>
           </div>
 

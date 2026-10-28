@@ -54,7 +54,7 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
   const [signUpEmail, setSignUpEmail] = useState<string>('');
   const [signUpPassword, setSignUpPassword] = useState<string>('');
   const [showPassword, setShowPassword] = useState<boolean>(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<'Python' | 'JavaScript' | 'SpellScript'>('Python');
+  const [selectedLanguage, setSelectedLanguage] = useState<'Python' | 'JavaScript' | 'Storicode'>('Python');
   const [isSignedUp, setIsSignedUp] = useState<boolean>(false);
 
   // Close dropdowns on outside click or escape
@@ -164,9 +164,8 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
                   isDarkMode ? 'text-[#FFF7ED]' : 'text-[#231238]'
                 }`}
               >
-                SpellScript
+                Storicode
               </span>
-              <span className="text-[10px] font-pixel text-[#F472B6] hidden sm:inline">.io</span>
             </div>
           </div>
 
@@ -211,7 +210,7 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
         <div className="absolute inset-0 pointer-events-none select-none z-0 overflow-hidden">
           <img
             src={homeBg}
-            alt="SpellScript Enchanted Cyber Citadel"
+            alt="Storicode Enchanted Cyber Citadel"
             className="w-full h-full object-cover object-center select-none pointer-events-none"
             style={{
               imageRendering: '-webkit-optimize-contrast',
@@ -717,7 +716,7 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
                     required
                     value={signUpEmail}
                     onChange={(e) => setSignUpEmail(e.target.value)}
-                    placeholder="wizard@spellscript.io"
+                    placeholder="wizard@example.com"
                     className={`w-full px-3.5 py-2.5 rounded-xl border text-sm font-medium outline-none transition-colors ${
                       isDarkMode
                         ? 'bg-black/30 border-[#8B5CF6]/40 focus:border-[#F472B6] text-white'
@@ -733,7 +732,7 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
                     <span>Primary Spell Language</span>
                   </label>
                   <div className="grid grid-cols-3 gap-2">
-                    {(['Python', 'JavaScript', 'SpellScript'] as const).map((lang) => (
+                    {(['Python', 'JavaScript', 'Storicode'] as const).map((lang) => (
                       <button
                         key={lang}
                         type="button"

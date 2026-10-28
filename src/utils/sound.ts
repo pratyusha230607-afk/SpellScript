@@ -1,4 +1,4 @@
-// Web Audio API Synthesizer & Procedural Lo-Fi Ambient Music Engine for SpellScript
+// Web Audio API Synthesizer & Procedural Lo-Fi Ambient Music Engine for Storicode
 
 export interface BgmTrack {
   id: string;

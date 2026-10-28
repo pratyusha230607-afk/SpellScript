@@ -32,14 +32,14 @@ interface SnippetPreset {
 const PRESET_SNIPPETS: SnippetPreset[] = [
   {
     id: 'hello',
-    name: 'Hello SpellScript',
+    name: 'Hello Storicode',
     emoji: '🪄',
-    code: `# 🪄 SpellScript Inscription Trial
+    code: `# 🪄 Storicode Inscription Trial
 apprentice_name = "Wizard of Code"
 mana_crystals = 7
 spell_affinity = "Ember & Light"
 
-print(f"✨ Welcome to SpellScript, {apprentice_name}!")
+print(f"✨ Welcome to Storicode, {apprentice_name}!")
 print(f"💎 Crystals Collected: {mana_crystals}")
 print(f"🔥 Innate Spell Affinity: {spell_affinity}")
 print("🚀 Ready to cast spells through real code!")`,
@@ -112,7 +112,7 @@ export const ArcaneTerminalModal: React.FC<ArcaneTerminalModalProps> = ({
   const [code, setCode] = useState<string>(PRESET_SNIPPETS[0].code);
   const [outputLogs, setOutputLogs] = useState<string[]>([
     '🔮 SPELLBOT ARCANE TERMINAL v2.6.4 [ONLINE]',
-    '📡 Connected to Local Node :: Python 3.12 / SpellScript Core',
+    '📡 Connected to Local Node :: Python 3.12 / Storicode Core',
     '💡 Tip: Select a preset or type your custom Python code and press "Run Spell".',
   ]);
   const [isRunning, setIsRunning] = useState<boolean>(false);

@@ -1,4 +1,4 @@
-name: Deploy SpellScript to GitHub Pages
+name: Deploy Storicode to GitHub Pages
 
 on:
   push:

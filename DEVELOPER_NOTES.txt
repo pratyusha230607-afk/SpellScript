@@ -1,4 +1,4 @@
-# 🪄 SpellScript — Developer Notes & Presentation Guide
+# 🪄 Storicode — Developer Notes & Presentation Guide
 
 > **A comprehensive technical manual and presentation reference for developers, architects, and presenters.**
 
@@ -19,7 +19,7 @@
 ## 1. Executive Summary & Presentation Pitch
 
 ### 🎯 The Elevator Pitch
-**SpellScript** (`spellscript.io`) is an interactive, gamified computer science learning platform that teaches core programming principles (variables, loops, conditionals, object-oriented movement, and algorithms) through **fantasy spellcasting metaphors**. Instead of staring at intimidating compiler terminals and dry documentation, apprentice wizards cast spells that visibly manifest in live simulation sandboxes: baby dragons navigate perilous crystal ruins, alchemical cauldrons brew color-shifting potions, starlight loops bloom enchanted lotus blossoms, and conditional spells shatter ancient obsidian curses.
+**Storicode** is an interactive, gamified computer science learning platform that teaches core programming principles (variables, loops, conditionals, object-oriented movement, and algorithms) through **fantasy spellcasting metaphors**. Instead of staring at intimidating compiler terminals and dry documentation, apprentice wizards cast spells that visibly manifest in live simulation sandboxes: baby dragons navigate perilous crystal ruins, alchemical cauldrons brew color-shifting potions, starlight loops bloom enchanted lotus blossoms, and conditional spells shatter ancient obsidian curses.
 
 ### 👥 Target Audience
 - **Beginner & Intermediate Programmers:** Seeking an intuitive mental model for abstract coding concepts.
@@ -51,7 +51,7 @@ Here is a summary of all recent architectural updates and visual enhancements im
   - **Light Mode:** Ethereal daylight lavender-cream background (`#F8F6FD`), deep velvet violet headers (`#231238`), royal purple accents (`#6D28D9`), and charcoal slate copy (`#475569`) on frosted glass cards.
 
 ### 4. Full Interactivity for All UI Elements
-- **Sign Up Modal:** Transformed the static button into a full Apprentice Wizard Registration Modal with form validation, spell language selector (Python / JS / SpellScript), password visibility toggle, celebratory confetti, fanfare audio, and instant onboarding to Chapter 1.
+- **Sign Up Modal:** Transformed the static button into a full Apprentice Wizard Registration Modal with form validation, spell language selector (Python / JS / Storicode), password visibility toggle, celebratory confetti, fanfare audio, and instant onboarding to Chapter 1.
 - **Theme Switcher:** Functional Sun/Moon toggle with state persistence in `localStorage`, dynamically recoloring the entire UI and adjusting background filter parameters.
 - **Spotlight Search Modal:** Global search activated by clicking "Search" or pressing `/` or `Cmd+K` / `Ctrl+K`. Features live query filtering across all 5 lessons, chapter tags, and instant jump navigation.
 - **Interactive Navigation Dropdowns:** Created animated menus for "Learn" (curriculum chapters) and "Practice" (specific interactive challenges).
@@ -116,7 +116,7 @@ const [signUpName, setSignUpName] = useState<string>('');
 const [signUpEmail, setSignUpEmail] = useState<string>('');
 const [signUpPassword, setSignUpPassword] = useState<string>('');
 const [showPassword, setShowPassword] = useState<boolean>(false);
-const [selectedLanguage, setSelectedLanguage] = useState<'Python' | 'JavaScript' | 'SpellScript'>('Python');
+const [selectedLanguage, setSelectedLanguage] = useState<'Python' | 'JavaScript' | 'Storicode'>('Python');
 const [isSignedUp, setIsSignedUp] = useState<boolean>(false);
 ```
 
@@ -161,7 +161,7 @@ const [isSignedUp, setIsSignedUp] = useState<boolean>(false);
 - **Inputs & Controls:**
   - **Apprentice Name:** Wizard moniker (required).
   - **Arcane Email:** Email input (required).
-  - **Spell Language Selector:** Interactive 3-way toggle between `🐍 Python`, `⚡ JavaScript`, and `🪄 SpellScript`.
+  - **Spell Language Selector:** Interactive 3-way toggle between `🐍 Python`, `⚡ JavaScript`, and `🪄 Storicode`.
   - **Secret Password:** Password field with real-time toggle visibility (`Eye` / `EyeOff` icons).
 - **Submission Workflow:**
   - Calls `handleSignUpSubmit(e)`.
@@ -200,7 +200,7 @@ const [isSignedUp, setIsSignedUp] = useState<boolean>(false);
 Follow this step-by-step walkthrough during a demo to showcase all features smoothly:
 
 ### Step 1: The First Impression (Hero & Visual Artistry)
-- *"Welcome to SpellScript. As you can see, the platform immediately captivates learners with a high-resolution, 2K fantasy cyber citadel background. Notice the razor-sharp castle spires, luminous circuit river, and clean typography."*
+- *"Welcome to Storicode. As you can see, the platform immediately captivates learners with a high-resolution, 2K fantasy cyber citadel background. Notice the razor-sharp castle spires, luminous circuit river, and clean typography."*
 - Highlight: Point out the animated baby dragon mascot resting on the bottom left and the floating mana light particles.
 
 ### Step 2: The Theme Engine (Dark & Light Modes)
@@ -223,7 +223,7 @@ Follow this step-by-step walkthrough during a demo to showcase all features smoo
 ### Step 5: Apprentice Onboarding (Sign Up Modal)
 - *"Let's register as a new apprentice."*
 - **Action:** Click the retro **Sign up** button in the navbar.
-- *"Here we have an apprentice registration modal. We can enter our apprentice name, choose our primary spell language—Python, JavaScript, or SpellScript—and set our secret incantation password."*
+- *"Here we have an apprentice registration modal. We can enter our apprentice name, choose our primary spell language—Python, JavaScript, or Storicode—and set our secret incantation password."*
 - **Action:** Enter a name (e.g. `Merlin`), choose `Python`, and click **Register Apprentice Wand**.
 - *"Listen to the procedural victory fanfare and watch the confetti physics celebrate the apprentice's initiation."*
 - **Action:** Click **Enter Chapter 1: Dragon's Lair** to transition straight into the coding lab!
@@ -262,4 +262,4 @@ sharp('public/your-new-image.png')
 ```
 
 ---
-*Created for the SpellScript Core Engineering & Presentation Team.*
+*Created for the Storicode Core Engineering & Presentation Team.*
