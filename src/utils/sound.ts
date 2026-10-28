@@ -758,12 +758,13 @@ class SoundSystem {
   }
 
   // Ambience toggle (used by Navbar)
-  public toggleAmbience() {
+  public toggleAmbience(): boolean {
     if (this.isBgmActive) {
       this.stopBgm();
     } else {
       this.startBgm();
     }
+    return this.isBgmActive;
   }
 }
 

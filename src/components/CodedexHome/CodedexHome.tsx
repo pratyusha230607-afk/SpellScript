@@ -710,11 +710,11 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
                   </div>
 
                   <p
-                    className={`text-xs mt-3 leading-relaxed line-clamp-3 ${
+                    className={`text-xs mt-3 leading-relaxed line-clamp-2 ${
                       isDarkMode ? 'text-[#CBD5E1]' : 'text-[#475569]'
                     }`}
                   >
-                    {l.whatIsThisBody}
+                    {l.taskObjective}
                   </p>
                 </div>
 
