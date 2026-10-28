@@ -5,6 +5,7 @@
 **SpellScript** transforms programming education into an immersive fantasy adventure. Instead of typing plain syntax on dull screens, learners cast spells, grow enchanted gardens, brew glowing elixirs, navigate baby dragons across floating ruins, break ancient curses, and defeat the Glitch Chimera in the Boss Arena.
 
 ---
+## hi bby
 
 ## 🌟 The Core Arcane Metaphors
 
