@@ -18,7 +18,7 @@ ReactDOM.createRoot(document.getElementById('root')!).render(
           border: '1px solid rgba(146, 116, 216, 0.4)',
           borderRadius: '12px',
           fontSize: '0.875rem',
-          fontFamily: "'Plus Jakarta Sans', sans-serif",
+          fontFamily: "'Merienda', cursive",
           backdropFilter: 'blur(12px)',
         },
         success: {

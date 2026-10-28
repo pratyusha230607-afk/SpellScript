@@ -37,9 +37,9 @@
     padding-right: env(safe-area-inset-right);
   }
 
-  /* Heading font — Cinzel is now loaded correctly */
+  /* Fondamento brings the handwritten fantasy style to display text. */
   h1, h2, h3, h4, h5, h6, .font-fantasy {
-    font-family: 'Cinzel', Georgia, serif;
+    font-family: 'Fondamento', Georgia, serif;
   }
 
   code, pre, .font-code {
