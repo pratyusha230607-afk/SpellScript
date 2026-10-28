@@ -280,7 +280,7 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
         </div>
 
         {/* HERO TITLE & TEXT */}
-        <div className="relative z-20 max-w-4xl px-4 mx-auto space-y-4">
+        <div className="relative z-20 w-full max-w-6xl px-4 mx-auto space-y-4 translate-y-4 sm:translate-y-5">
           {/* Small Pixel Sub-Heading */}
           <div
             className={`inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full backdrop-blur-md shadow-lg font-pixel text-[11px] sm:text-xs font-black tracking-widest uppercase transition-colors ${
@@ -294,9 +294,9 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
           </div>
 
           {/* HUGE CHUNKY 3D TITLE: "Coding Adventure" */}
-          <h1 className="font-pixelify font-black text-5xl sm:text-7xl md:text-8xl tracking-tight leading-none select-none">
+          <h1 className="w-full font-pixelify font-extrabold text-[clamp(2rem,8.5vw,6rem)] tracking-tight leading-[1.2] select-none">
             <span
-              className={`inline-block hover:scale-105 transition-transform bg-clip-text text-transparent ${
+              className={`inline-block px-1 py-1 transition-transform bg-clip-text text-transparent ${
                 isDarkMode
                   ? 'bg-gradient-to-b from-[#FFFFFF] via-[#F472B6] to-[#A78BFA] filter drop-shadow-[0_4px_0_#3B1D66] drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)]'
                   : 'bg-gradient-to-b from-[#1E1B4B] via-[#701A75] to-[#4338CA] filter drop-shadow-[0_4px_0_#DDD6FE] drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)]'
@@ -305,7 +305,7 @@ export const CodedexHome: React.FC<CodedexHomeProps> = ({ onStartAdventure }) =>
               Coding
             </span>{' '}
             <span
-              className={`inline-block hover:scale-105 transition-transform bg-clip-text text-transparent ${
+              className={`inline-block px-1 py-1 transition-transform bg-clip-text text-transparent ${
                 isDarkMode
                   ? 'bg-gradient-to-b from-[#6EE7B7] via-[#38BDF8] to-[#818CF8] filter drop-shadow-[0_4px_0_#1E3A8A] drop-shadow-[0_12px_24px_rgba(0,0,0,0.9)]'
                   : 'bg-gradient-to-b from-[#0F766E] via-[#2563EB] to-[#4F46E5] filter drop-shadow-[0_4px_0_#DDD6FE] drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)]'
