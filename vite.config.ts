@@ -13,6 +13,11 @@ export default defineConfig({
         target: 'http://localhost:5001',
         changeOrigin: true,
       },
+      '/music-api': {
+        target: 'https://api.freetouse.com',
+        changeOrigin: true,
+        rewrite: (path) => path.replace(/^\/music-api/, ''),
+      },
     },
   },
 });

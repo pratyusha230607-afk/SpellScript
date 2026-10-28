@@ -17,11 +17,11 @@ import {
 import { sound, BGM_TRACKS, BgmTrack } from '../../utils/sound';
 
 interface OnlineTrack {
-  id: number | string;
+  id: string;
   name: string;
   artist: string;
   albumArt?: string;
-  previewUrl: string;
+  audioUrl: string;
 }
 
 export const MusicPlayer: React.FC = () => {
@@ -32,10 +32,11 @@ export const MusicPlayer: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState<boolean>(false);
   const [hasInteracted, setHasInteracted] = useState<boolean>(false);
 
-  // Online Search State (iTunes Free API)
+  // Free To Use music search state
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [isSearching, setIsSearching] = useState<boolean>(false);
   const [searchResults, setSearchResults] = useState<OnlineTrack[]>([]);
+  const [searchError, setSearchError] = useState<string | null>(null);
   const [currentOnlineTrack, setCurrentOnlineTrack] = useState<OnlineTrack | null>(null);
   const [activeMode, setActiveMode] = useState<'presets' | 'search'>('presets');
 
@@ -137,26 +138,33 @@ export const MusicPlayer: React.FC = () => {
     if (!searchQuery.trim()) return;
 
     setIsSearching(true);
+    setSearchError(null);
     sound.playClick();
     try {
-      const res = await fetch(
-        `https://itunes.apple.com/search?term=${encodeURIComponent(
-          searchQuery
-        )}&entity=song&limit=9`
-      );
+      const params = new URLSearchParams({
+        query: searchQuery.trim(),
+        limit: '18',
+      });
+      const apiBase = import.meta.env.DEV ? '/music-api' : 'https://api.freetouse.com';
+      const res = await fetch(`${apiBase}/v3/music/tracks/search?${params}`);
+      if (!res.ok) throw new Error(`Music search failed (${res.status}).`);
       const data = await res.json();
-      if (data.results) {
-        const tracks: OnlineTrack[] = data.results.map((item: any) => ({
-          id: item.trackId,
-          name: item.trackName,
-          artist: item.artistName,
-          albumArt: item.artworkUrl100,
-          previewUrl: item.previewUrl,
+      if (data.ok === false) throw new Error(data.error || 'Music search failed.');
+      const tracks: OnlineTrack[] = (data.data ?? [])
+        .filter((item: any) => !item.is_premium && item.files?.mp3)
+        .slice(0, 9)
+        .map((item: any) => ({
+          id: item.id,
+          name: item.title || 'Untitled track',
+          artist: (item.artists ?? []).map((entry: any) => entry[1]?.name).filter(Boolean).join(', ') || 'Unknown artist',
+          albumArt: item.thumbnails?.sm,
+          audioUrl: item.files.mp3,
         }));
-        setSearchResults(tracks);
-      }
+      setSearchResults(tracks);
+      if (tracks.length === 0) setSearchError('No free tracks found. Try another search.');
     } catch (err) {
-      console.error('Failed to search music:', err);
+      setSearchResults([]);
+      setSearchError(err instanceof Error ? err.message : 'Could not search for music.');
     } finally {
       setIsSearching(false);
     }
@@ -169,9 +177,9 @@ export const MusicPlayer: React.FC = () => {
     setIsPlaying(true);
 
     if (audioRef.current) {
-      audioRef.current.src = track.previewUrl;
+      audioRef.current.src = track.audioUrl;
       audioRef.current.volume = isMuted ? 0 : volume;
-      audioRef.current.play().catch((e) => console.log('Audio autoplay prevented:', e));
+      audioRef.current.play().catch(() => setIsPlaying(false));
     }
   };
 
@@ -211,13 +219,13 @@ export const MusicPlayer: React.FC = () => {
             </div>
           </div>
 
-          {/* MODE 1: Free Song Search API (iTunes / Apple Catalog) */}
+          {/* MODE 1: Free To Use music search */}
           {activeMode === 'search' ? (
             <div className="space-y-2.5">
               <form onSubmit={handleSearchMusic} className="flex gap-1.5">
                 <input
                   type="text"
-                  placeholder="Search any song or artist..."
+                  placeholder="Search royalty-free music..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className="flex-1 bg-black/50 border border-white/15 focus:border-manaMint rounded-xl px-3 py-1.5 text-xs text-white placeholder-white/40 focus:outline-none"
@@ -233,39 +241,43 @@ export const MusicPlayer: React.FC = () => {
 
               {/* Search Results */}
               <div className="space-y-1.5 max-h-52 overflow-y-auto pr-1">
-                {searchResults.length === 0 && !isSearching && (
+                {searchResults.length === 0 && !isSearching && !searchError && (
                   <div className="text-center py-4 text-xs text-white/50 space-y-1">
                     <Disc3 className="w-6 h-6 mx-auto text-magic opacity-40 animate-spin-slow" />
-                    <div>Search any song (Lofi, K-Pop, Rock, Classical...)</div>
+                    <div>Search free, non-premium tracks.</div>
                   </div>
                 )}
+                {searchError && <div className="text-center py-3 text-xs text-amber-200">{searchError}</div>}
                 {searchResults.map((t) => (
-                  <button
-                    key={t.id}
-                    onClick={() => handlePlayOnlineTrack(t)}
-                    className={`w-full text-left p-2 rounded-xl border flex items-center justify-between gap-2.5 transition-all text-xs cursor-pointer ${
-                      currentOnlineTrack?.id === t.id && isPlaying
-                        ? 'bg-gradient-to-r from-magic/40 to-spellPink/20 border-spellPink text-white font-bold'
-                        : 'bg-white/5 border-white/5 hover:bg-white/10 text-white/80'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2.5 truncate">
-                      {t.albumArt ? (
-                        <img src={t.albumArt} alt={t.name} className="w-8 h-8 rounded-lg object-cover shadow" />
-                      ) : (
-                        <div className="w-8 h-8 rounded-lg bg-magic/20 flex items-center justify-center text-xs">🎵</div>
-                      )}
-                      <div className="truncate">
-                        <div className="truncate text-white font-bold text-xs">{t.name}</div>
-                        <div className="text-[10px] text-manaMint truncate">{t.artist}</div>
+                  <div key={t.id} className="p-2 rounded-xl border bg-white/5 border-white/5 space-y-1.5">
+                    <button
+                      onClick={() => handlePlayOnlineTrack(t)}
+                      className="w-full text-left flex items-center justify-between gap-2.5 text-xs cursor-pointer"
+                    >
+                      <div className="flex items-center gap-2.5 min-w-0">
+                        {t.albumArt ? (
+                          <img src={t.albumArt} alt="" className="w-8 h-8 rounded-lg object-cover shadow" />
+                        ) : (
+                          <div className="w-8 h-8 rounded-lg bg-magic/20 flex items-center justify-center text-xs">🎵</div>
+                        )}
+                        <div className="min-w-0">
+                          <div className="truncate text-white font-bold">{t.name}</div>
+                          <div className="text-[10px] text-manaMint truncate">{t.artist}</div>
+                        </div>
                       </div>
+                      {currentOnlineTrack?.id === t.id && isPlaying ? (
+                        <Pause className="w-3.5 h-3.5 text-spellPink shrink-0" />
+                      ) : (
+                        <Play className="w-3.5 h-3.5 text-white/60 shrink-0 fill-current" />
+                      )}
+                    </button>
+                    <div className="text-[9px] text-white/55 leading-snug">
+                      {t.name} by {t.artist} · Free music by{' '}
+                      <a href="https://freetouse.com/music" target="_blank" rel="noreferrer" className="text-spellPink hover:underline inline-flex items-center gap-0.5">
+                        Free To Use <ExternalLink className="w-2.5 h-2.5" />
+                      </a>
                     </div>
-                    {currentOnlineTrack?.id === t.id && isPlaying ? (
-                      <Pause className="w-3.5 h-3.5 text-spellPink shrink-0" />
-                    ) : (
-                      <Play className="w-3.5 h-3.5 text-white/60 shrink-0 fill-current" />
-                    )}
-                  </button>
+                  </div>
                 ))}
               </div>
             </div>
